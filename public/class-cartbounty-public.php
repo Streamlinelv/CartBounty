@@ -729,7 +729,7 @@ class CartBounty_Public{
 
 		//Retrieving cart total value and currency
 		$cart_total = WC()->cart->total;
-		$cart_currency = get_woocommerce_currency();
+		$cart_currency = $this->get_selected_currency();
 		$current_time = current_time( 'mysql', false ); //Retrieving current time
 		$session_id = WC()->session->get( 'cartbounty_session_id' ); //Check if the session is already set
 		
@@ -803,6 +803,41 @@ class CartBounty_Public{
 			'session_id' 	=> $session_id,
 			'cart_contents' => $cart_contents
 		);
+	}
+
+	/**
+	 * Returns currently selected currency
+	 * First going through session variable to check if currency has been set here since some currency switcher plugins may store this here
+	 * After that look inside cart data for currency information since some plugins store it there
+	 * Supporting these plugins by default:
+	 * - WooPayments: Integrated WooCommerce Payments (built-in currency switcher)				[wcpay_currency]
+	 * - YayCurrency – WooCommerce Multi-Currency Switcher 										[yay_currency_code]
+	 *
+	 * @since    8.7
+	 * @return   string
+	 */
+	function get_selected_currency(){
+		$currency_keys = array(
+			'wcpay_currency',
+		);
+
+		foreach( $currency_keys as $key ){
+			$currency = WC()->session->get( $key );
+
+			if( $currency ){
+				return $currency;
+			}
+		}
+
+		//In case of YayCurrency, we must look inside cart data for stored currency code
+		foreach( WC()->cart->get_cart() as $cart_item ){
+			
+			if( isset( $cart_item['yay_currency_code'] ) ){
+				return $cart_item['yay_currency_code'];
+			}
+		}
+
+		return get_woocommerce_currency();
 	}
 
 	/**

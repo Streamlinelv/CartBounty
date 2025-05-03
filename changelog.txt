@@ -1,5 +1,8 @@
 == Changelog ==
 
+= 8.7 =
+* Improved compatibility with Multi-Currency plugins
+
 = 8.6 =
 * Improved abandoned cart bulk action messages
 * Added a new filter that allows to disable "Remember checkout fields" function

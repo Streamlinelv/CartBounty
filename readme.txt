@@ -329,10 +329,7 @@ In addition, the Pro version allows you to select if guests from specific countr
 
 == Changelog ==
 
-= 8.6 =
-* Improved abandoned cart bulk action messages
-* Added a new filter that allows to disable "Remember checkout fields" function
-* Fixed a JavaScript issue affecting report updates
-* Code refactoring
+= 8.7 =
+* Improved compatibility with Multi-Currency plugins
 
 [See changelog for all versions](https://raw.githubusercontent.com/Streamlinelv/woo-save-abandoned-carts/master/changelog.txt).
