@@ -47,7 +47,7 @@ Save your time with automated abandoned cart recovery and focus your energy on t
 * Restore Custom product fields (Product addons) and WooCommerce Product Bundles (**Pro**)
 * Exclude carts from abandoned cart recovery based on specific products or product categories, countries, languages, IP addresses, and other criteria (**Pro**)
 * Pause / Resume / Restart individual abandoned cart recovery (**Pro**)
-* Translate emails and SMS text messages, [WPML](https://wpml.org/?aid=447227&affiliate_key=0a2ZxRioMm8S) plugin support (**Pro**)
+* Translate emails, push notifications and SMS text messages using [WPML](https://wpml.org/?aid=447227&affiliate_key=0a2ZxRioMm8S), Loco translate and GTranslate plugins (**Pro**)
 
 #### Get more leads and reduce cart abandonment
 
@@ -152,8 +152,11 @@ Filters:
 * cartbounty_save_custom_fields
 * cartbounty_custom_email_selectors
 * cartbounty_custom_phone_selectors
+* cartbounty_custom_add_to_cart_button_selectors
 * cartbounty_phone_validation
 * cartbounty_disable_input_bot_test
+* cartbounty_restore_classic_checkout
+* cartbounty_restore_block_checkout
 
 Here is an example how to change the From email that sends out notification emails using "cartbounty_from_email" filter. Please add it to your theme's functions.php file:
 
@@ -245,6 +248,7 @@ Filters:
 * cartbounty_automation_footer_address_1
 * cartbounty_automation_footer_address_2
 * cartbounty_automation_unsubscribe_html
+* cartbounty_wordpress_batch_email_limit
 
 Example how to add additional content right before the main title in WordPress recovery reminder email:
 

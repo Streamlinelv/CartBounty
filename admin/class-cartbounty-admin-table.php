@@ -337,13 +337,16 @@ class CartBounty_Table extends WP_List_Table{
         $date = date_create(current_time( 'mysql', false ));
         $current_time = strtotime(date_format($date, 'Y-m-d H:i:s'));
         $status = '';
+        $cart_waiting_time = $admin->get_waiting_time();
 
         if($item['type'] == $admin->get_cart_type('recovered')){
             $status .= sprintf('<span class="status recovered">%s</span>', esc_html__('Recovered', 'woo-save-abandoned-carts'));
         }
 
-        if($cart_time > $current_time - $admin->get_waiting_time() * 60 && $item['type'] != $admin->get_cart_type('recovered')){ //Checking time if user is still shopping or might return - we add shopping label
-            $status .= sprintf('<span class="status shopping">%s</span>', esc_html__('Shopping', 'woo-save-abandoned-carts'));
+        if($cart_time > $current_time - $cart_waiting_time * 60 && $item['type'] != $admin->get_cart_type('recovered')){ //Checking time if user is still shopping or might return - we add shopping label
+            
+            $status_description = sprintf( esc_html__( 'Will be considered abandoned after %s minutes of no activity', 'woo-save-abandoned-carts' ),  $cart_waiting_time );
+            $status .= sprintf( '<div class="status-item-container shopping-description"><span class="cartbounty-tooltip">%s</span><span class="status shopping">%s</span></div>', $status_description, esc_html__( 'Shopping', 'woo-save-abandoned-carts' ) );
 
         }else{
 

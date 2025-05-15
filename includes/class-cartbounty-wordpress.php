@@ -65,7 +65,7 @@ class CartBounty_WordPress{
 	 * @since    7.0
 	 * @return   boolean
 	 */
-	public function automation_enabled() {
+	public function automation_enabled(){
 		$enabled = false;
 		$active_steps = $this->get_active_steps();
 		
@@ -86,7 +86,7 @@ class CartBounty_WordPress{
 	 * @return   string
      * @param    boolean    $enabled    		  Wheather automation has been enabled or not
 	 */
-	public function display_automation_status( $enabled ) {
+	public function display_automation_status( $enabled ){
 		$status = sprintf( '<span class="status inactive">%s</span>', esc_html__( 'Disabled', 'woo-save-abandoned-carts' ) );
 
 		if( $enabled ){
@@ -101,9 +101,9 @@ class CartBounty_WordPress{
 	 *
 	 * @since    7.0
 	 */
-	private function recover_carts() {
+	private function recover_carts(){
 		global $wpdb;
-		$admin = new CartBounty_Admin(CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER);
+		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
 
 		$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
 		$time = $admin->get_time_intervals();
@@ -127,32 +127,44 @@ class CartBounty_WordPress{
 				time < %s AND
 				time > %s
 				$email_consent_query",
-				$admin->get_cart_type('abandoned'),
+				$admin->get_cart_type( 'abandoned' ),
 				$time['cart_abandoned'],
 				$time['maximum_sync_period']
 			)
 		);
 
 		$active_steps = $this->get_active_steps();
-		$automation_steps = get_option('cartbounty_automation_steps');
+		$automation_steps = get_option( 'cartbounty_automation_steps' );
+		$messages_sent = 0;
+		$max_messages_to_send = apply_filters( 'cartbounty_wordpress_batch_email_limit', 10 );
 
-		foreach ($active_steps as $key => $step) { //Looping through active steps
+		foreach( $active_steps as $key => $step ){ //Looping through active steps
 			$automation_step = $automation_steps[$step];
-			foreach ($carts as $cart_key => $cart) {
-				if($cart->wp_steps_completed == $key){ //If current step must be complete
+			
+			foreach( $carts as $cart_key => $cart ){
+
+				//If sent message limit reached, break out of both foreach loops
+				if( $messages_sent >= $max_messages_to_send ){
+					break 2;
+				}
+				
+				if( $cart->wp_steps_completed == $key ){ //If current step must be complete
 					$first_step = true;
 					$time = $cart->time;
 
-					if(isset($automation_step['interval'])){
+					if( isset( $automation_step['interval'] ) ){
 						$interval = $automation_step['interval'];
+
 					}else{ //If custom interval is not set, fallback to default interval
 						$interval = $this->get_defaults( 'interval', $step );
 					}
+
 					$step_wait_time = $admin->get_time_intervals( $interval, $first_step ); //Get time interval for the current step
 
-					if ($time < $step_wait_time['wp_step_send_period']){ //Check if time has passed for current step
+					if( $time < $step_wait_time['wp_step_send_period'] ){ //Check if time has passed for current step
 						$this->send_reminder( $cart ); //Time has passed - must prepare and send out reminder email
-						unset($carts[$cart_key]); //Remove array element so the next step loop runs faster
+						$messages_sent++;
+						unset( $carts[$cart_key] ); //Remove array element so the next step loop runs faster
 					}
 				}
 			}

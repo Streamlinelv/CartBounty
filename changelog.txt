@@ -1,7 +1,12 @@
 == Changelog ==
 
 = 8.7 =
+* Added compatibility with "Frequently bought together" plugins
+* Added a 10-email batch limit for WordPress recovery emails to help avoid falling into spam blacklists
 * Improved compatibility with Multi-Currency plugins
+* Improved duplicate abandoned cart detection by adding phone number validation
+* Fixed incorrect duplicate cart removal when phone number was empty
+* Fixed minor PHP notice linked with early cart currency detection
 
 = 8.6 =
 * Improved abandoned cart bulk action messages

@@ -5,7 +5,7 @@ Tags: woocommerce, abandoned carts, cart abandonment, exit popup, activecampaign
 Requires at least: 4.6
 Tested up to: 6.8
 Requires PHP: 7.0
-Stable tag: 8.6
+Stable tag: 8.7
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -54,7 +54,7 @@ Save your time with automated abandoned cart recovery and focus your energy on t
 * Restore Custom product fields (Product addons) and WooCommerce Product Bundles (**Pro**)
 * Exclude carts from abandoned cart recovery based on specific products or product categories, countries, languages, IP addresses, and other criteria (**Pro**)
 * Pause / Resume / Restart individual abandoned cart recovery (**Pro**)
-* Translate emails and SMS text messages, [WPML](https://wpml.org/?aid=447227&affiliate_key=0a2ZxRioMm8S) plugin support (**Pro**)
+* Translate emails, push notifications and SMS text messages using [WPML](https://wpml.org/?aid=447227&affiliate_key=0a2ZxRioMm8S), Loco translate and GTranslate plugins (**Pro**)
 
 ## Get more leads and reduce cart abandonment
 
@@ -159,6 +159,7 @@ Filters:
 * cartbounty_save_custom_fields
 * cartbounty_custom_email_selectors
 * cartbounty_custom_phone_selectors
+* cartbounty_custom_add_to_cart_button_selectors
 * cartbounty_phone_validation
 * cartbounty_disable_input_bot_test
 * cartbounty_restore_classic_checkout
@@ -254,6 +255,7 @@ Filters:
 * cartbounty_automation_footer_address_1
 * cartbounty_automation_footer_address_2
 * cartbounty_automation_unsubscribe_html
+* cartbounty_wordpress_batch_email_limit
 
 Example how to add additional content right before the main title in WordPress recovery reminder email:
 
@@ -330,6 +332,11 @@ In addition, the Pro version allows you to select if guests from specific countr
 == Changelog ==
 
 = 8.7 =
+* Added compatibility with "Frequently bought together" plugins
+* Added a 10-email batch limit for WordPress recovery emails to help avoid falling into spam blacklists
 * Improved compatibility with Multi-Currency plugins
+* Improved duplicate abandoned cart detection by adding phone number validation
+* Fixed incorrect duplicate cart removal when phone number was empty
+* Fixed minor PHP notice linked with early cart currency detection
 
 [See changelog for all versions](https://raw.githubusercontent.com/Streamlinelv/woo-save-abandoned-carts/master/changelog.txt).

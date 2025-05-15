@@ -170,6 +170,15 @@
 			current.parent().parent().parent().addClass('cartbounty-checked'); //Necessary to show/hide small text additions
 		}
 
+		function disableInputField(){
+			var $input = jQuery(this);
+
+			if(!$input.prop('disabled')){
+				$input.prop('disabled', true);
+				$input.parent().addClass('cartbounty-checked');
+			}
+		}
+
 		function disableLink(e){ //Function prevents link from firing
 			e.preventDefault();
 		}
@@ -396,6 +405,7 @@
 		jQuery('.cartbounty-wordpress-get-additional-step').on("click", removeActiveStepClassUpgradeNotice );
 		jQuery(".cartbounty-close-notice:not(.cartbounty-preview-container .cartbounty-notice-content .button)").on("click", closeNotice );
 		jQuery(".button-preview, .cartbounty-preview-container .cartbounty-notice-content .button").on("click", togglePreview );
+		jQuery(".disabled").on("focus input keydown", disableInputField );
 	});
 
 })( jQuery );

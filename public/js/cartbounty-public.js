@@ -8,6 +8,7 @@
 		var custom_checkout_fields = cartbounty_co.checkout_fields;
 		var custom_email_selectors = cartbounty_co.custom_email_selectors;
 		var custom_phone_selectors = cartbounty_co.custom_phone_selectors;
+		var custom_button_selectors = cartbounty_co.custom_button_selectors;
 		var contact_saved = localStorage.getItem('cartbounty_contact_saved');
 
 		function getCheckoutData(){ //Reading WooCommerce field values
@@ -181,8 +182,8 @@
 		jQuery('.wc-block-checkout, .woocommerce-checkout').on( 'keyup keypress change', 'input, textarea, select', getCheckoutData );
 		jQuery(window).on( 'load', getCheckoutData ); //Automatically collect and save input field data if input fields already filled on page load
 		jQuery(document).ajaxSend(addCartBountyInputDataToAjax);
-		jQuery(document).on('click', '.add_to_cart_button, .ajax_add_to_cart, .single_add_to_cart_button', appendHiddenInputField);
-		jQuery(document).on('click', '.add_to_cart_button', saveBotTestResult);
+		jQuery(document).on('click', custom_button_selectors, appendHiddenInputField);
+		jQuery(document).on('click', custom_button_selectors, saveBotTestResult);
 
 		if( ( save_custom_fields && !contact_saved ) ){ //If custom field saving enabled and contact is not saved - try to save email or phone
 			passCustomFieldToCartBounty();

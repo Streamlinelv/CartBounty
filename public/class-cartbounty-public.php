@@ -91,6 +91,7 @@ class CartBounty_Public{
 			'checkout_fields' 			=> $this->get_checkout_fields(),
 			'custom_email_selectors' 	=> $this->get_custom_email_selectors(),
 			'custom_phone_selectors' 	=> $this->get_custom_phone_selectors(),
+			'custom_button_selectors' 	=> $this->get_custom_add_to_cart_button_selectors(),
 			'consent_field' 			=> $admin->get_consent_field_data( 'field_name' ),
 			'email_validation' 			=> $email_validation,
 			'phone_validation' 			=> apply_filters( 'cartbounty_phone_validation', '^[+0-9\s]\s?\d[0-9\s-.]{6,30}$'),
@@ -822,18 +823,26 @@ class CartBounty_Public{
 		);
 
 		foreach( $currency_keys as $key ){
-			$currency = WC()->session->get( $key );
+
+			if( is_user_logged_in() ){ //For signed-in customers
+				$currency = get_user_meta( get_current_user_id(), $key, true );
+			
+			}else{
+				$currency = WC()->session->get( $key );
+			}
 
 			if( $currency ){
 				return $currency;
 			}
 		}
 
-		//In case of YayCurrency, we must look inside cart data for stored currency code
-		foreach( WC()->cart->get_cart() as $cart_item ){
-			
-			if( isset( $cart_item['yay_currency_code'] ) ){
-				return $cart_item['yay_currency_code'];
+		if( did_action( 'wp_loaded' ) ){
+			//In case of YayCurrency, we must look inside cart data for stored currency code
+			foreach( WC()->cart->get_cart() as $cart_item ){
+				
+				if( isset( $cart_item['yay_currency_code'] ) ){
+					return $cart_item['yay_currency_code'];
+				}
 			}
 		}
 
@@ -1757,4 +1766,27 @@ class CartBounty_Public{
 		return implode( ', ', $selectors );
 	}
 
+	/**
+	 * Get custom "Add to cart" button selectors
+	 * Ability to use a filter to edit this list
+	 *
+	 * Supporting these plugins by default:
+	 * - CartBounty custom add to cart button class								[cartbounty]
+	 * - WooCommerce 															[woocommerce]
+	 * - YITH WooCommerce Frequently Bought Together by YITH					[yith-wfbt]
+	 *
+	 * @since    10.7
+	 * @return   string
+	 */
+	function get_custom_add_to_cart_button_selectors(){
+		$selectors = apply_filters( 'cartbounty_custom_add_to_cart_button_selectors',
+			array(
+				'cartbounty' 	=> '.cartbounty-add-to-cart',
+				'woocommerce' 	=> '.add_to_cart_button, .ajax_add_to_cart, .single_add_to_cart_button',
+				'yith-wfbt' 	=> '.yith-wfbt-submit-button',
+			)
+		);
+
+		return implode( ', ', $selectors );
+	}
 }

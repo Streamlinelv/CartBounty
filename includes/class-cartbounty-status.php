@@ -171,10 +171,14 @@ class CartBounty_System_Status{
 			$ip_address = $_SERVER['LOCAL_ADDR'];
 		}
 
+		if( $ip_address == '127.0.0.1' ){ //Usually in case of a VPS being used - try to get VPS IP address
+			$ip_address = gethostbyname( $_SERVER['HTTP_HOST'] );
+		}
+
 		$environment = array(
 			'WordPress address (URL)' 	=> home_url(),
 			'Site address (URL)' 		=> site_url(),
-			'Site IP address' 				=> $ip_address,
+			'Site IP address' 			=> $ip_address,
 			'WordPress version' 		=> get_bloginfo( 'version' ),
 			'WordPress multisite' 		=> (is_multisite()) ? 'Yes' : '-',
 			'WooCommerce version' 		=> class_exists( 'WooCommerce' ) ? esc_html( WC_VERSION ) : '-',

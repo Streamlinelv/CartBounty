@@ -726,6 +726,30 @@ class CartBounty_Admin{
 										</div>
 									</div>
 								</div>
+								<?php if( $this->gtranslate_is_active() ): ?>
+								<div class="cartbounty-row">
+									<div class="cartbounty-titles-column cartbounty-col-sm-4 cartbounty-col-lg-3">
+										<h4><?php esc_html_e( 'GTranslate', 'woo-save-abandoned-carts' ); ?></h4>
+										<p class="cartbounty-titles-column-description">
+											<?php echo sprintf(
+											/* translators: %s - Link tags */
+											esc_html__( 'Translate abandoned cart reminder messages using GTranslate API. %sSee this%s to learn how to configure translations.', 'woo-save-abandoned-carts'), '<a href="'. esc_url( $this->get_trackable_link( CARTBOUNTY_LICENSE_SERVER_URL . 'translations', 'gtranslate_configuration', '#gtranslate' ) ) .'" title="'. esc_attr__( 'Configure translations with GTranslate', 'woo-save-abandoned-carts' ) .'" target="_blank">', '</a>' ); ?>
+										</p>
+									</div>
+									<div class="cartbounty-settings-column cartbounty-col-sm-8 cartbounty-col-lg-9">
+										<div class="cartbounty-settings-group">
+											<label for="cartbounty_gtranslate_key" class="cartbounty-unavailable"><?php esc_html_e( 'API Key', 'woo-save-abandoned-carts' ); ?></label>
+											<input id="cartbounty_gtranslate_key" class="cartbounty-text cartbounty-unavailable disabled" type="text" />
+											<p class='cartbounty-additional-information'>
+												<?php echo sprintf(
+												/* translators: %s - Link tags */
+												esc_html__( 'You can sign up for a free API key %shere%s.', 'woo-save-abandoned-carts' ), '<a href="https://translatex.com" target="_blank">', '</a>' ); ?>
+												<i class='cartbounty-hidden cartbounty-unavailable-notice'><br/><?php echo $this->display_unavailable_notice( 'gtranslate' ); ?></i>
+											</p>
+										</div>
+									</div>
+								</div>
+								<?php endif; ?>
 								<div class="cartbounty-row">
 									<div class="cartbounty-titles-column cartbounty-col-sm-4 cartbounty-col-lg-3">
 										<h4><?php esc_html_e('Protection', 'woo-save-abandoned-carts'); ?></h4>
@@ -4153,9 +4177,7 @@ class CartBounty_Admin{
 		$recent_unpaid_user_carts = $this->get_recent_unpaid_user_carts( $email, $phone );
 		$matching_carts = $this->get_matching_cart_contents( $recent_unpaid_user_carts, $cart_contents );
 
-		if( empty($matching_carts ) ){
-			return;
-		}
+		if( empty( $matching_carts ) ) return;
 
 		$ordered = $this->get_cart_type( 'ordered' );
 		$duplicate_cart_ids = array();
@@ -4164,14 +4186,17 @@ class CartBounty_Admin{
 			$duplicate_cart_ids[] = $key;
 		}
 
+		if( empty( $duplicate_cart_ids ) ) return;
+
 		$ids = implode( ', ', $duplicate_cart_ids );
+		$placeholders = implode( ', ', array_fill( 0, count( $duplicate_cart_ids ), '%d' ) );
 
 		$result = $wpdb->query( //Update all duplicate carts to type = ordered (2)
 			$wpdb->prepare(
 				"UPDATE $cart_table
 				SET type = %s
-				WHERE id IN ($ids)",
-				$ordered
+				WHERE id IN ($placeholders)",
+				array_merge( array( $ordered ), $duplicate_cart_ids )
 			)
 		);
 	}
@@ -4189,12 +4214,16 @@ class CartBounty_Admin{
 		$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
 		$where_sentence = $this->get_where_sentence( 'recoverable' );
 		$time_intervals = $this->get_time_intervals();
+
+		if( !$this->validate_phone_number( $phone ) ){ //If phone number is not valid, considering it empty
+			$phone = '';
+		}
 		
 		$carts = $wpdb->get_results( //Get carts with the same email in the last 30 days
 			$wpdb->prepare(
 				"SELECT *
 				FROM $cart_table
-				WHERE (email = %s OR phone = %s)
+				WHERE ((email = %s AND email != '') OR (phone = %s AND phone != ''))
 				$where_sentence AND
 				time > %s
 				ORDER BY time DESC",
@@ -4421,20 +4450,20 @@ class CartBounty_Admin{
 	* @param    string     $currency_code   	  Currency code, e.g. EUR, USD
 	*/
 	public function format_price( $price, $currency_code = false ){
-		if (!class_exists('WooCommerce')){ //If WooCommerce is not active
-			return;
-		}
+		
+		if( !class_exists( 'WooCommerce' ) ) return;
 
 		$decimals = 0;
-		if(wc_get_price_decimals()){
+
+		if( wc_get_price_decimals() ){
 			$decimals = wc_get_price_decimals();
 		}
 
-		$price = number_format((float)$price, $decimals, '.', ''); //Format price so there would always be correct number of decimals after comma, e.g. 2.30 instead of 2.3
+		$price = number_format( ( float )$price, $decimals, '.', '' ); //Format price so there would always be correct number of decimals after comma, e.g. 2.30 instead of 2.3
 		$woocommerce_price_format = get_woocommerce_price_format(); //Retrieve the pricing format the user has set
 		$currency = $this->get_currency( $currency_code );
 
-		$price = sprintf( apply_filters( 'cartbounty_price_format', $woocommerce_price_format ), $currency, $price);
+		$price = sprintf( apply_filters( 'cartbounty_price_format', $woocommerce_price_format ), $currency, $price );
 		return $price;
 	}
 
@@ -4446,19 +4475,19 @@ class CartBounty_Admin{
 	* @param    string     $currency_code   	  Currency code, e.g. EUR, USD
 	*/
 	public function get_currency( $currency_code = false ){
-		if (!class_exists('WooCommerce')){ //If WooCommerce is not active
-			return;
-		}
+		
+		if( !class_exists( 'WooCommerce' ) ) return;
 
 		$currency = get_woocommerce_currency_symbol( $currency_code );
 
-		if(apply_filters( 'cartbounty_display_currency_code', false )){ //If currency code display is enabled, display currency code instead of symbol. By default we display currency symbol
+		if( apply_filters( 'cartbounty_display_currency_code', false ) ){ //If currency code display is enabled, display currency code instead of symbol. By default we display currency symbol
 			$currency = $currency_code;
 		}
 
-		if(empty($currency)){ //If the currency is empty, retrieve default WooCommerce currency ignoring the one saved in the abandoned cart
+		if( empty( $currency ) ){ //If the currency is empty, retrieve default WooCommerce currency ignoring the one saved in the abandoned cart
 			$currency = get_woocommerce_currency_symbol();
 		}
+
 		return $currency;
 	}
 
@@ -5373,6 +5402,29 @@ class CartBounty_Admin{
 	}
 
 	/**
+	* Validate phone number
+	*
+	* @return   boolean
+	* @param    string     $phone     Phone number
+	* @since    8.7
+	*/
+	public function validate_phone_number( $phone ){
+		$valid = false;
+		$pattern = '^[+0-9\s]\s?\d[0-9\s.\-]{6,30}$';
+		$regex = '/'. $pattern .'/';
+
+		if( !empty( $phone ) ){
+
+			if( preg_match( $regex, $phone ) === 1 ){
+				$valid = true;
+			}
+		}
+		
+		return $valid;
+	}
+
+
+	/**
 	* Return email preview modal container
 	*
 	* @since    7.0
@@ -5390,6 +5442,22 @@ class CartBounty_Admin{
 			$output .= '</div>';
 		$output .= '</div>';
 		return $output;
+	}
+
+	/**
+	 * Method checks if GTranslate is active
+	 *
+	 * @since    8.7
+	 * @return   boolean
+	 */
+	function gtranslate_is_active(){
+		$result = false;
+
+		if( class_exists( 'GTranslate' ) ){
+			$result = true;
+		}
+
+		return $result;
 	}
 
 	/**

@@ -825,20 +825,18 @@ textarea:disabled,
 }
 
 .status-item-container .cartbounty-tooltip{
-	right: 140%;
 	top: -3px;
-	left: auto;
+	left: -10px;
 	bottom: auto;
 	height: auto;
-	margin-left: -40px;
 	width: auto;
 	padding-right: 15px;
 	padding-left: 15px;
-	-webkit-transform: translateX(0%); /* WebKit */
-	-moz-transform: translateX(0%); /* Mozilla */
-	-o-transform: translateX(0%); /* Opera */
-	-ms-transform: translateX(0%); /* Internet Explorer */
-	transform: translateX(0%); /* CSS3 */
+	-webkit-transform: translateX(-100%); /* WebKit */
+	-moz-transform: translateX(-100%); /* Mozilla */
+	-o-transform: translateX(-100%); /* Opera */
+	-ms-transform: translateX(-100%); /* Internet Explorer */
+	transform: translateX(-100%); /* CSS3 */
 }
 
 .status-item-container.tool .cartbounty-tooltip{
@@ -849,8 +847,8 @@ textarea:disabled,
 	min-width: 142px;
 }
 
-.status-item-container.email-history .cartbounty-tooltip{
-	min-width: 142px;
+.status-item-container.shopping-description .cartbounty-tooltip{
+	min-width: 125px;
 }
 
 .cartbounty-tooltip:after{
@@ -890,7 +888,7 @@ textarea:disabled,
 
 .status-item-container:hover .cartbounty-tooltip{
 	bottom: auto;
-	right: 125%;
+	left: -5px;
 }
 
 #contextual-help-wrap .cartbounty-container-active .cartbounty-tooltip{
@@ -1010,11 +1008,13 @@ a.cartbounty-tab{
 	background: #ffe400;
 }
 
-.cartbounty-section-item.cartbounty-item-faded{
+.cartbounty-section-item.cartbounty-item-faded,
+#cartbounty-sections li.cartbounty-unavailable{
 	opacity: .5;
 }
 
-.cartbounty-section-item.cartbounty-item-faded:hover{
+.cartbounty-section-item.cartbounty-item-faded:hover,
+#cartbounty-sections li.cartbounty-unavailable:hover{
 	opacity: 1;
 }
 
