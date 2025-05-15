@@ -975,6 +975,8 @@ class CartBounty_Public{
 
 		if( !apply_filters( 'cartbounty_restore_block_checkout', true ) ) return;
 
+		if( !function_exists( 'is_admin' ) || !function_exists( 'is_user_logged_in' ) ) return;
+
 		if( is_admin() || is_user_logged_in() ) return;
 
 		if( WC()->session ){
