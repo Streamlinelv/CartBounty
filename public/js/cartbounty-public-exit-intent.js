@@ -85,10 +85,10 @@
 		}
 
 		function closeExitIntentForm(){ //Close exit intent window
-			$('#cartbounty-exit-intent-form').addClass('cartbounty-fade-out'); //Hide form
+			$('#cartbounty-exit-intent-form').addClass('cartbounty-fade-out');
 
 			setTimeout(function(){
-				$('#cartbounty-exit-intent-form').removeClass('cartbounty-visible'); //Hide form
+				$('#cartbounty-exit-intent-form').removeClass('cartbounty-visible cartbounty-fade-out');
 				$('#cartbounty-exit-intent-form-backdrop').removeClass('cartbounty-visible'); //Hide backdrop
 			}, 300);
 		}
