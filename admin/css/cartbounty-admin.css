@@ -787,6 +787,7 @@ textarea:disabled,
 	-moz-border-radius: 2px;
 	border-radius: 2px;
 	margin: 3px 10px 3px 0;
+	background: rgba(255, 255, 255, 0.2); /*Added for Safari browsers to fix opacity issue */
 }
 
 .cartbounty-abandoned-product,

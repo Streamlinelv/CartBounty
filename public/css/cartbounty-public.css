@@ -143,6 +143,11 @@
 	line-height: 18px;
 }
 
+#cartbounty-exit-intent-form.cartbounty-visible.cartbounty-fade-out #cartbounty-exit-intent-form-container,
+#cartbounty-exit-intent-form.cartbounty-visible.cartbounty-fade-out #cartbounty-exit-intent-form-backdrop{
+	opacity: 0;
+}
+
 /* Exit Intent Template
  * Appear In Center
  */

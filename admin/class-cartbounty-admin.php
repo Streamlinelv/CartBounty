@@ -144,6 +144,9 @@ class CartBounty_Admin{
 	* @param    string     $value                Value to return
 	*/
 	public function get_settings( $section, $value = false ){
+		
+		$saved_options = array();
+		$defaults = array();
 
 		switch ( $section ) {
 
@@ -195,7 +198,6 @@ class CartBounty_Admin{
 					'time_bubble_steps_displayed' 		=> '',
 					'times_review_declined' 			=> 0,
 					'email_table_exists' 				=> false,
-					'table_transferred' 				=> false, //Temporary option since version 8.1.1
 					'converted_minutes_to_miliseconds' 	=> false,
 				);
 
@@ -353,7 +355,7 @@ class CartBounty_Admin{
 	function display_page(){
 		global $pagenow;
 		
-		if ( !current_user_can( 'list_users' )){
+		if ( !$this->user_is_shop_manager() ){
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'woo-save-abandoned-carts' ) );
 		}?>
 
@@ -361,13 +363,13 @@ class CartBounty_Admin{
 			<h1><?php esc_html_e( CARTBOUNTY_ABREVIATION ); ?></h1>
 			<?php do_action('cartbounty_after_page_title'); ?>
 
-			<?php if ( isset ( $_GET['tab'] ) ){
+			<?php if( isset ( $_GET['tab'] ) ){
 				$this->create_admin_tabs( $_GET['tab'] );
 			}else{
 				$this->create_admin_tabs( 'dashboard' );
 			}
 
-			if ( $pagenow == 'admin.php' && $_GET['page'] == CARTBOUNTY ){
+			if( $pagenow == 'admin.php' && $_GET['page'] == CARTBOUNTY ){
 				$tab = $this->get_open_tab();
 				$current_section = $this->get_open_section();
 
@@ -441,8 +443,8 @@ class CartBounty_Admin{
 										</h3>
 										<?php echo $reports->edit_options( 'carts-by-country' ); ?>
 									</div>
-									<div id="cartbounty-abandoned-carts-by-country-container">
-										<?php echo $reports->display_carts_by_country(); ?>
+									<div id="cartbounty-abandoned-carts-by-country-container" class="cartbounty-loading-skeleton-screen">
+										<?php echo $reports->display_report_skeleton( 'map' ); ?>
 									</div>
 								</div>
 								<div class="cartbounty-top-abandoned-products cartbounty-report-widget">
@@ -456,7 +458,9 @@ class CartBounty_Admin{
 										<?php echo $reports->edit_options( 'top-products' ); ?>
 									</div>
 									<div id="cartbounty-top-abandoned-products-container">
-										<?php echo $reports->display_top_products(); ?>
+										<div id="cartbounty-cart-top-products" class="cartbounty-dashboard-table cartbounty-loading-skeleton-screen">
+											<?php echo $reports->display_report_skeleton( 'top_products' ); ?>
+										</div>
 									</div>
 								</div>
 								<?php $active_features = $this->display_active_features();
@@ -885,7 +889,7 @@ class CartBounty_Admin{
 									<?php
 									settings_fields( 'cartbounty-settings' );
 									do_settings_sections( 'cartbounty-settings' );
-									if(current_user_can( 'manage_options' )){
+									if( $this->user_is_admin() ){
 										echo "<button type='submit' class='cartbounty-button button-primary cartbounty-progress'>". esc_html__('Save settings', 'woo-save-abandoned-carts') ."</button>";
 									}?>
 								</div>
@@ -1287,7 +1291,7 @@ class CartBounty_Admin{
 					'availability'		=> true,
 					'faded'				=> false,
 					'info_link'			=> '',
-					'description'		=> '<p>' . esc_html__("A simple solution for sending abandoned cart reminder emails using WordPress mail server. This recovery option works best if you have a small to medium number of abandoned carts.", 'woo-save-abandoned-carts') . '</p><p>' . esc_html__("If you are looking for something more advanced and powerful, please consider connecting with ActiveCampaign, GetResponse or MailChimp.", 'woo-save-abandoned-carts') . '</p>'
+					'description'		=> '<p>' . esc_html__("A simple solution for sending abandoned cart reminder emails using WordPress mail server. This recovery option works best if you have a small to medium number of abandoned carts.", 'woo-save-abandoned-carts') . '</p>'
 				),
 				'activecampaign'	=> array(
 					'name'				=> 'ActiveCampaign',
@@ -1295,7 +1299,7 @@ class CartBounty_Admin{
 					'availability'		=> false,
 					'faded'				=> true,
 					'info_link'			=> CARTBOUNTY_ACTIVECAMPAIGN_TRIAL_LINK,
-					'description'		=> '<p>' . esc_html__("ActiveCampaign is an awesome platform that enable you to set up advanced rules for sending abandoned cart recovery emails tailored to customer behavior.", 'woo-save-abandoned-carts') . '</p><p>' . esc_html__("In contrast to MailChimp, it allows sending reminder email series without the requirement to subscribe.", 'woo-save-abandoned-carts') . '</p>'
+					'description'		=> '<p>' . esc_html__("ActiveCampaign is an awesome platform that enable you to set up advanced rules for sending abandoned cart recovery emails tailored to customer behavior.", 'woo-save-abandoned-carts') . '</p>'
 				),
 				'getresponse'	=> array(
 					'name'				=> 'GetResponse',
@@ -1311,7 +1315,7 @@ class CartBounty_Admin{
 					'availability'		=> false,
 					'faded'				=> true,
 					'info_link'			=> CARTBOUNTY_MAILCHIMP_LINK,
-					'description'		=> '<p>' . esc_html__("MailChimp offers a free plan and allows to send personalized reminder emails to your customers, either as one-time messages or a series of follow-up emails, such as sending the first email within an hour of cart abandonment, the second one after 24 hours, and so on.", 'woo-save-abandoned-carts') . '</p><p>' . esc_html__("MailChimp will only send the 1st email in the series unless a user becomes a subscriber.", 'woo-save-abandoned-carts') . '</p>'
+					'description'		=> '<p>' . esc_html__("MailChimp allows to send personalized reminder emails to your customers, either as one-time messages or a series of follow-up emails, such as sending the first email within an hour of cart abandonment, the second one after 24 hours, and so on.", 'woo-save-abandoned-carts') . '</p>'
 				),
 				'bulkgate'	=> array(
 					'name'				=> 'BulkGate',
@@ -1327,7 +1331,7 @@ class CartBounty_Admin{
 					'availability'		=> false,
 					'faded'				=> true,
 					'info_link'			=> CARTBOUNTY_PUSH_NOTIFICATION_LINK,
-					'description'		=> '<p>' . esc_html__("With no requirement for an email or phone number, web push notifications provide a low-friction, real-time, personal and efficient channel for sending abandoned cart reminders.", 'woo-save-abandoned-carts') . '</p><p>' . esc_html__("Additionally, notifications can be sent even after the user has closed the website, providing a higher chance of engaging them to complete their purchase.", 'woo-save-abandoned-carts') . '</p>'
+					'description'		=> '<p>' . esc_html__("Web push notifications offer a low-friction, real-time way to send cart reminders - no email or phone necessary. They can reach users even after they have left your store, increasing the chance of cart recovery.", 'woo-save-abandoned-carts') . '</p>'
 				),
 				'webhook'	=> array(
 					'name'				=> 'Webhook',
@@ -1923,7 +1927,7 @@ class CartBounty_Admin{
 					</div>
 					<div class='cartbounty-button-row'>
 						<?php
-						if(current_user_can( 'manage_options' )){
+						if( $this->user_is_admin() ){
 							echo "<button type='submit' class='cartbounty-button button-primary cartbounty-progress'>". esc_html__('Save settings', 'woo-save-abandoned-carts') ."</button>";
 						}
 						if($wordpress->automation_enabled()){
@@ -2143,7 +2147,7 @@ class CartBounty_Admin{
 					</div>
 					<div class='cartbounty-button-row'>
 						<?php
-						if(current_user_can( 'manage_options' )){
+						if( $this->user_is_admin() ){
 							echo "<button type='submit' class='cartbounty-button button-primary cartbounty-progress'>". esc_html__('Save settings', 'woo-save-abandoned-carts') ."</button>";
 						}?>
 					</div>
@@ -3056,7 +3060,7 @@ class CartBounty_Admin{
 				$status = 'disabled=""';
 			}
 		}
-		elseif(!current_user_can( 'manage_options' )){
+		elseif( !$this->user_is_admin() ){
 			$status = 'disabled=""';
 		}
 		return $status;
@@ -3379,26 +3383,27 @@ class CartBounty_Admin{
 	 * @since    5.0.3
 	 */
 	public function reset_abandoned_cart(){
-		if(!is_user_logged_in()){ //Exit in case the user is not logged in
-			return;
-		}
+		if( !is_user_logged_in() ) return; //Exit in case the user is not logged in
 
 		global $wpdb;
 		$user_id = 0;
-		$public = new CartBounty_Public(CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER);
 
-		if (!empty($_POST['user_id']) && is_numeric($_POST['user_id']) ) { //In case the user's data is updated from WordPress admin dashboard "Edit profile page"
+		if( !empty( $_POST['user_id'] ) && is_numeric( $_POST['user_id'] ) ){ //In case the user's data is updated from WordPress admin dashboard "Edit profile page"
 			$user_id = $_POST['user_id'];
 
-		}elseif(!empty($_POST['action'])){ //This check is to prevent profile update to be fired after a new Order is created since no "action" is provided and the user's ID remians 0 and we exit resetting of the abandoned cart
+		}elseif( !empty( $_POST['action'] ) ){ //This check is to prevent profile update to be fired after a new Order is created since no "action" is provided and the user's ID remians 0 and we exit resetting of the abandoned cart
 			$user_id = get_current_user_id();
 		}
 
-		if(!$user_id){ //Exit in case we do not have user's ID value
-			return;
-		}
+		if( !$user_id ) return; //Exit in case we do not have user's ID value
 		
-		if($public->cart_saved($user_id)){ //If we have saved an abandoned cart for the user - go ahead and reset in case it has been abandoned or payment is still pending
+		$public = new CartBounty_Public(CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER);
+		$cart = array(
+			'session_id' 	=> $user_id,
+			'cart_contents' => '',
+		);
+
+		if( $public->cart_saved( $cart, $ip_address = '', $ignore_cooldown = true ) ){ //If we have saved an abandoned cart for the user - go ahead and reset in case it has been abandoned or payment is still pending
 			$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
 			$updated_rows = $wpdb->query(
 				$wpdb->prepare(
@@ -3416,7 +3421,7 @@ class CartBounty_Admin{
 					WHERE session_id = %s AND
 					type != %d",
 					$user_id,
-					$this->get_cart_type('recovered')
+					$this->get_cart_type( 'recovered' )
 				)
 			);
 		}
@@ -3495,7 +3500,7 @@ class CartBounty_Admin{
 		$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT id, email, session_id, cart_contents
+				"SELECT id, email, session_id, cart_contents, cart_meta
 				FROM $cart_table
 				WHERE id = %d AND
 				type != %d",
@@ -3537,14 +3542,22 @@ class CartBounty_Admin{
 		
 		if( WC()->cart ){ //Checking if WooCommerce has loaded
 			WC()->cart->empty_cart();//Removing any products that might have be added in the cart
-			$saved_cart_contents = $this->get_saved_cart_contents( $cart->cart_contents );
-			$cart_contents = $saved_cart_contents['products'];
-			$cart_data = $saved_cart_contents['cart_data'];
+
+			$cart_contents = array();
+			$cart_meta = array();
+
+			if( isset( $cart->cart_contents ) ){
+				$cart_contents = $this->get_saved_cart_contents( $cart->cart_contents );
+			}
+
+			if( isset( $cart->cart_meta ) ){
+				$cart_meta = $this->get_saved_cart_contents( $cart->cart_meta );
+			}
 			
 			if( !$cart_contents ) return; //If missing products
 
 			foreach( $cart_contents as $product ){ //Looping through cart products
-				$custom_data = array();
+				$custom_meta = array();
 				$product_exists = wc_get_product( $product['product_id'] ); //Checking if the product exists
 				
 				if( $product_exists ){
@@ -3559,13 +3572,13 @@ class CartBounty_Admin{
 						$variation_attributes = $single_variation->get_variation_attributes();
 					}
 					
-					foreach( $cart_data as $key => $data ){
-						if( $data['product_id'] == $product['product_id'] ){
-							$custom_data = $data;
+					foreach( $cart_meta as $key => $meta ){
+						if( $meta['product_id'] == $product['product_id'] ){
+							$custom_meta = $meta;
 						}
 					}
 
-					WC()->cart->add_to_cart( $product['product_id'], $product['quantity'], $product['product_variation_id'], $variation_attributes, $custom_data ); //Adding previous products back to cart
+					WC()->cart->add_to_cart( $product['product_id'], $product['quantity'], $product['product_variation_id'], $variation_attributes, $custom_meta ); //Adding previous products back to cart
 				}
 			}
 
@@ -3720,6 +3733,7 @@ class CartBounty_Admin{
 			'cart_abandoned' 			=> date( $date_format, strtotime( '-' . $waiting_time . ' minutes', strtotime( $datetime ) ) ),
 			'cart_recovered' 			=> date( $date_format, strtotime( '-30 seconds', strtotime( $datetime ) ) ),
 			'old_cart' 					=> date( $date_format, strtotime( '-' . CARTBOUNTY_NEW_NOTICE . ' minutes', strtotime( $datetime ) ) ),
+			'ten_minutes' 				=> date( $date_format, strtotime( '-10 minutes', strtotime( $datetime ) ) ),
 			'two_hours' 				=> date( $date_format, strtotime( '-2 hours', strtotime( $datetime ) ) ),
 			'day' 						=> date( $date_format, strtotime( '-1 day', strtotime( $datetime ) ) ),
 			'week' 						=> date( $date_format, strtotime( '-7 days', strtotime( $datetime ) ) ),
@@ -3746,12 +3760,12 @@ class CartBounty_Admin{
 	}
 
 	/**
-     * Method counts carts in the selected category
-     *
-     * @since    5.0
-     * @return   number
-     */
-    function get_cart_count( $cart_status ){
+	 * Method counts carts in the selected category
+	 *
+	 * @since    5.0
+	 * @return   number
+	 */
+	function get_cart_count( $cart_status ){
 		global $wpdb;
 		$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
 		$total_items = 0;
@@ -4249,7 +4263,7 @@ class CartBounty_Admin{
 		
 		if( empty( $carts ) ) return; //Exit if we have no carts
 
-		$cart_contents = $this->get_saved_cart_contents( $cart_contents, 'products' );
+		$cart_contents = $this->get_saved_cart_contents( $cart_contents );
 		
 		if( !is_array( $cart_contents ) ){ //In case cart contents are not an array - exit
 			return;
@@ -4263,7 +4277,7 @@ class CartBounty_Admin{
 		}
 
 		foreach( $carts as $key => $cart ){ //Build product comparison array for each cart look for duplicates
-			$cart_contents_to_compare = $this->get_saved_cart_contents( $cart->cart_contents, 'products' );
+			$cart_contents_to_compare = $this->get_saved_cart_contents( $cart->cart_contents );
 			
 			if( is_array( $cart_contents_to_compare ) ){
 				$products = array();
@@ -4803,6 +4817,11 @@ class CartBounty_Admin{
      * @param    integer     $cart_id   		    Abandoned cart ID
      */
 	public function delete_cart( $cart_id ){
+
+		if( !$this->user_is_admin() ){
+			wp_die( esc_html__( 'You do not have sufficient permissions to perform this action.', 'woo-save-abandoned-carts' ) );
+		}
+
 		global $wpdb;
 		$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
 
@@ -5341,40 +5360,20 @@ class CartBounty_Admin{
 	}
 
 	/**
-	* Return saved abandoned cart contents
+	* Return saved abandoned cart data
 	*
 	* @since    8.1
 	* @return   array
-	* @param    array     $cart_contents     Cart contents
-	* @param    string    $data_type    	 Cart content data type to return e.g. products, cart_data
+	* @param    array     $cart_data         Cart data that needs to be returned
 	*/
-	public function get_saved_cart_contents( $cart_contents, $data_type = false ){
-		$saved_cart_contents = array();
-		$cart_contents = maybe_unserialize( $cart_contents );
-		$products = $cart_contents;
-		$cart_data = array();
+	public function get_saved_cart_contents( $cart_data ){
+		$saved_cart_data = maybe_unserialize( $cart_data );
 
-		if( isset( $cart_contents['cart_data'] ) ){
-			$cart_data = $cart_contents['cart_data'];
+		if( isset( $saved_cart_data['products'] ) ){ //Temporary block since version 8.8. Will be removed in future versions. Supports previous version of saving cart contents and cart mete information in the same column
+			$saved_cart_data = $saved_cart_data['products'];
 		}
 
-		if( isset( $cart_contents['products'] ) ){
-			$products = $cart_contents['products'];
-		}
-
-		$saved_cart_contents = array(
-			'products'		=> $products,
-			'cart_data'		=> $cart_data,
-		);
-
-		if( $data_type ){ //If a single value should be returned
-
-			if( isset( $saved_cart_contents[$data_type] ) ){ //Checking if value exists
-				$saved_cart_contents = $saved_cart_contents[$data_type];
-			}
-		}
-
-		return $saved_cart_contents;
+		return $saved_cart_data;
 	}
 
 	/**
@@ -5461,11 +5460,129 @@ class CartBounty_Admin{
 	}
 
 	/**
+	 * Replacing WordPress default transients with custom function for storing temporary data
+	 * Transients do not seem to be working reliably for all users
+	 * Using WooCommerce session value as a unique identifier
+	 *
+	 * @since    8.8
+	 * @param    string    $key                Temporary data field identificator
+	 * @param    string    $value              Value to be stored
+	 * @param    string    $expiration         Data expiration time
+	 * @param    boolean   $unique         	   If the transient should be unique for each customer or not
+	 */
+	function set_cartbounty_transient( $key, $value, $expiration = 60, $unique = false ){
+		$customer_id = '';
+		
+		if( $unique ){ //If storing unique option for each visitor
+
+			if( WC()->session ){
+				$customer_id = '_' . WC()->session->get_customer_id();
+			}
+		}
+
+		$data = array(
+			'value'      => $value,
+			'expiration' => time() + absint( $expiration ),
+		);
+
+		$id = 'cartbounty_temp_' . $key . $customer_id;
+		update_option( $id, $data, false );
+	}
+
+	/**
+	 * Retrieving custom transient data from database
+	 *
+	 * @since    8.8
+	 * @return   false / string
+	 * @param    string    $key                Temporary data field identificator
+	 * @param    boolean   $unique         	   If the transient should be unique for each customer or not
+	 */
+	function get_cartbounty_transient( $key, $unique = false ){
+		$result = false;
+		$customer_id = '';
+
+		if( $unique ){ //If retrieving a unique option for each visitor
+
+			if( WC()->session ){
+				$customer_id = '_' . WC()->session->get_customer_id();
+			}
+		}
+
+		$id = 'cartbounty_temp_' . $key . $customer_id;
+		$data = get_option( $id );
+
+		if( empty( $data ) || !is_array( $data ) || !isset( $data['expiration'] ) ){ //If data is missing
+			//Do nothing
+		
+		}elseif( time() > $data['expiration'] ){ //Clean up expired data
+			delete_option( $id );
+
+		}else{
+			$result = $data['value'];
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Delete a single transient with the given id
+	 *
+	 * @since    8.8
+	 * @param    string    $key                Temporary data field identificator
+	 */
+	function delete_cartbounty_transient( $key ){
+		$id = 'cartbounty_temp_' . $key;
+		delete_option( $id );
+	}
+
+	/**
+	* Deleting transients
+	* Function does not check if transient has expired or not
+	*
+	* @since    8.8
+	*/
+	function delete_expired_cartbounty_transients(){
+		global $wpdb;
+		$options_table = $wpdb->options;
+		$prefix = 'cartbounty_temp_';
+		$now = time();
+
+		$wpdb->get_results(
+			$wpdb->prepare(
+				"DELETE FROM $options_table
+				 WHERE option_name
+				 LIKE %s",
+				$wpdb->esc_like( $prefix ) . '%'
+			)
+		);
+	}
+
+	/**
+	* Checks if current user has Admin privileges
+	*
+	* @since    8.8
+	* @return   boolean
+	*/
+	function user_is_admin(){
+		return current_user_can( 'manage_options' );
+	}
+
+	/**
+	* Checks if current user has Shop manager privileges
+	*
+	* @since    8.8
+	* @return   boolean
+	*/
+	function user_is_shop_manager(){
+		return current_user_can( 'list_users' );
+	}
+
+	/**
 	 * Converts the WooCommerce country codes to 3-letter ISO codes
 	 *
 	 * @since    8.2
 	 * @return   string    ISO 3-letter country code
-	 * @param    string    WooCommerce's 2 letter country code
+	 * @param    string    $country               WooCommerce's 2 letter country code
 	 */
 	public function convert_country_code( $country ) {
 		$countries = array(

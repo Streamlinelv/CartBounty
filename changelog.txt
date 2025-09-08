@@ -1,5 +1,13 @@
 == Changelog ==
 
+= 8.8 =
+* Improved Dashboard (abandoned cart report) loading performance
+* Improved detection of abandoned carts if WooCommerce session ID changes
+* Improved how cart contents are stored to increase efficiency
+* Improved Exit Intent popup closing UX
+* Restricted abandoned cart deletion to administrators only
+* Transitioned from relying on WordPress transients to a custom transient management system
+
 = 8.7 =
 * Added compatibility with "Frequently bought together" plugins
 * Added a 10-email batch limit for WordPress recovery emails to help avoid falling into spam blacklists

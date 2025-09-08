@@ -110,6 +110,7 @@ class CartBounty_Public{
 	 */
 	function save_cart(){
 		$anonymous = true;
+		$user_ip = $this->get_user_ip();
 
 		if( isset( $_GET['cartbounty'] ) ) return;
 
@@ -127,14 +128,14 @@ class CartBounty_Public{
 		if( $admin->get_settings( 'settings', 'exclude_anonymous_carts' ) && $anonymous ) return;
 
 		$cart = $this->read_cart();
-		$cart_saved = $this->cart_saved( $cart['session_id'] );
+		$cart_saved = $this->cart_saved( $cart, $user_ip );
 		$user_data = $this->get_user_data();
 
 		if( $cart_saved ){ //If cart has already been saved
-			$result = $this->update_cart( $cart, $user_data, $anonymous );
+			$result = $this->update_cart( $cart, $user_data, $anonymous, $user_ip );
 
 		}else{
-			$result = $this->create_new_cart( $cart, $user_data, $anonymous );
+			$result = $this->create_new_cart( $cart, $user_data, $anonymous, $user_ip );
 		}
 
 		if( isset( $_POST["action"] ) ){ //In case we are saving cart data via Ajax coming from CartBounty tools - try and return the result
@@ -157,14 +158,15 @@ class CartBounty_Public{
 	 * @param    array      $cart     		Cart contents
 	 * @param    array      $user_data      User's data
 	 * @param    boolean    $anonymous    	If the cart is anonymous or not
+	 * @param    string     $user_ip    	User's IP address
 	 */
-	function create_new_cart( $cart = array(), $user_data = array(), $anonymous = false ){
+	function create_new_cart( $cart = array(), $user_data = array(), $anonymous = false, $user_ip = '' ){
 		global $wpdb;
 		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
 		$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
 
 		//In case if the cart has no items in it, we must delete the cart
-		if( empty( $cart['cart_contents']['products'] ) ){
+		if( empty( $cart['cart_contents'] ) ){
 			$admin->clear_cart_data();
 			return;
 		}
@@ -174,15 +176,18 @@ class CartBounty_Public{
 			$wpdb->query(
 				$wpdb->prepare(
 					"INSERT INTO $cart_table
-					( location, cart_contents, cart_total, currency, time, session_id )
-					VALUES ( %s, %s, %0.2f, %s, %s, %s )",
+					( location, cart_contents, cart_hash, cart_meta, cart_total, currency, time, session_id, ip_address )
+					VALUES ( %s, %s, %s, %s, %0.2f, %s, %s, %s, %s )",
 					array(
-						'location'		=> sanitize_text_field( serialize( $user_data['location'] ) ),
-						'cart_contents'	=> serialize( $cart['cart_contents'] ),
+						'location'		=> sanitize_text_field( maybe_serialize( $user_data['location'] ) ),
+						'cart_contents'	=> maybe_serialize( $cart['cart_contents'] ),
+						'cart_hash'		=> sanitize_text_field( $cart['cart_hash'] ),
+						'cart_meta'		=> maybe_serialize( $cart['cart_meta'] ),
 						'total'			=> sanitize_text_field( $cart['cart_total'] ),
 						'currency'		=> sanitize_text_field( $cart['cart_currency'] ),
 						'time'			=> sanitize_text_field( $cart['current_time'] ),
-						'session_id'	=> sanitize_text_field( $cart['session_id'] )
+						'session_id'	=> sanitize_text_field( $cart['session_id'] ),
+						'ip_address'	=> sanitize_text_field( $user_ip )
 					)
 				)
 			);
@@ -199,27 +204,30 @@ class CartBounty_Public{
 			}
 
 			if( !empty( $user_data['other_fields'] ) ){
-				$other_fields = sanitize_text_field( serialize( $user_data['other_fields'] ) );
+				$other_fields = sanitize_text_field( maybe_serialize( $user_data['other_fields'] ) );
 			}
 			//Inserting row into Database
 			$wpdb->query(
 				$wpdb->prepare(
 					"INSERT INTO $cart_table
-					( name, surname, email, phone, email_consent, location, cart_contents, cart_total, currency, time, session_id, other_fields, saved_via )
-					VALUES ( %s, %s, %s, %s, %d, %s, %s, %0.2f, %s, %s, %s, %s, %s )",
+					( name, surname, email, phone, email_consent, location, cart_contents, cart_hash, cart_meta, cart_total, currency, time, session_id, other_fields, ip_address, saved_via )
+					VALUES ( %s, %s, %s, %s, %d, %s, %s, %s, %s, %0.2f, %s, %s, %s, %s, %s, %s )",
 					array(
 						'name'			=> sanitize_text_field( $user_data['name'] ),
 						'surname'		=> sanitize_text_field( $user_data['surname'] ),
 						'email'			=> sanitize_email( $user_data['email'] ),
 						'phone'			=> filter_var( $user_data['phone'], FILTER_SANITIZE_NUMBER_INT),
 						'email_consent'	=> sanitize_text_field( $email_consent ),
-						'location'		=> serialize( $user_data['location'] ),
-						'cart_contents'	=> serialize( $cart['cart_contents'] ),
+						'location'		=> maybe_serialize( $user_data['location'] ),
+						'cart_contents'	=> maybe_serialize( $cart['cart_contents'] ),
+						'cart_hash'		=> sanitize_text_field( $cart['cart_hash'] ),
+						'cart_meta'		=> maybe_serialize( $cart['cart_meta'] ),
 						'total'			=> sanitize_text_field( $cart['cart_total'] ),
 						'currency'		=> sanitize_text_field( $cart['cart_currency'] ),
 						'time'			=> sanitize_text_field( $cart['current_time'] ),
 						'session_id'	=> sanitize_text_field( $cart['session_id'] ),
 						'other_fields'	=> $other_fields,
+						'ip_address'	=> sanitize_text_field( $user_ip ),
 						'saved_via'		=> $source
 					)
 				)
@@ -239,17 +247,18 @@ class CartBounty_Public{
 	 * @param    array      $cart     		Cart contents
 	 * @param    array      $user_data      User's data
 	 * @param    boolean    $anonymous   	If the cart is anonymous or not
+	 * @param    string     $user_ip    	User's IP address
 	 */
-	function update_cart( $cart = array(), $user_data = array(), $anonymous = false ){
+	function update_cart( $cart = array(), $user_data = array(), $anonymous = false, $user_ip = '' ){
 		//In case if the cart has no items in it, we must delete the cart
-		if( empty( $cart['cart_contents']['products'] ) ){
+		if( empty( $cart['cart_contents'] ) ){
 			$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
 			$admin->clear_cart_data();
 			return;
 		}
 
 		if( $anonymous ){ //In case of anonymous cart
-			$this->update_cart_data($cart);
+			$this->update_cart_data( $cart, $user_ip );
 
 		}else{
 			$save_user_data = false;
@@ -262,10 +271,10 @@ class CartBounty_Public{
 			}
 
 			if( is_user_logged_in() || $save_user_data ){
-				$this->update_cart_and_user_data( $cart, $user_data );
+				$this->update_cart_and_user_data( $cart, $user_data, $user_ip );
 
 			}else{
-				$this->update_cart_data( $cart );
+				$this->update_cart_data( $cart, $user_ip );
 			}
 		}
 
@@ -277,9 +286,10 @@ class CartBounty_Public{
 	 * Method updates only cart related data excluding customer details
 	 *
 	 * @since    5.0
-	 * @param    Array    $cart    Cart contents inclding cart session ID
+	 * @param    Array    	$cart    		Cart contents inclding cart session ID
+	 * @param    string     $user_ip    	User's IP address
 	 */
-	function update_cart_data( $cart ){
+	function update_cart_data( $cart, $user_ip = '' ){
 		global $wpdb;
 		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
 		$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
@@ -288,15 +298,21 @@ class CartBounty_Public{
 			$wpdb->prepare(
 				"UPDATE $cart_table
 				SET cart_contents = %s,
+				cart_hash = %s,
+				cart_meta = %s,
 				cart_total = %0.2f,
 				currency = %s,
-				time = %s
+				time = %s,
+				ip_address = %s
 				WHERE session_id = %s AND
 				type = %d",
-				serialize( $cart['cart_contents'] ),
+				maybe_serialize( $cart['cart_contents'] ),
+				sanitize_text_field( $cart['cart_hash'] ),
+				maybe_serialize( $cart['cart_meta'] ),
 				sanitize_text_field( $cart['cart_total'] ),
 				sanitize_text_field( $cart['cart_currency'] ),
 				sanitize_text_field( $cart['current_time'] ),
+				sanitize_text_field( $user_ip ),
 				$cart['session_id'],
 				$admin->get_cart_type( 'abandoned' )
 			)
@@ -309,10 +325,11 @@ class CartBounty_Public{
 	 * Method updates both customer data and contents of the cart
 	 *
 	 * @since    5.0
-	 * @param    Array    $cart    		Cart contents inclding cart session ID
-	 * @param    Array    $user_data    User's data
+	 * @param    Array    	$cart    		Cart contents inclding cart session ID
+	 * @param    Array    	$user_data    	User's data
+	 * @param    string     $user_ip    	User's IP address
 	 */
-	function update_cart_and_user_data( $cart, $user_data ){
+	function update_cart_and_user_data( $cart, $user_data, $user_ip = '' ){
 		global $wpdb;
 		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
 		$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
@@ -326,7 +343,7 @@ class CartBounty_Public{
 		}
 
 		if( !empty( $user_data['other_fields'] ) ){
-			$other_fields = sanitize_text_field( serialize( $user_data['other_fields'] ) );
+			$other_fields = sanitize_text_field( maybe_serialize( $user_data['other_fields'] ) );
 		}
 
 		$updated_rows = $wpdb->query(
@@ -339,10 +356,13 @@ class CartBounty_Public{
 				email_consent = %d,
 				location = %s,
 				cart_contents = %s,
+				cart_hash = %s,
+				cart_meta = %s,
 				cart_total = %0.2f,
 				currency = %s,
 				time = %s,
 				other_fields = %s,
+				ip_address = %s,
 				saved_via = $source
 				WHERE session_id = %s AND
 				type = %d",
@@ -351,12 +371,15 @@ class CartBounty_Public{
 				sanitize_email( $user_data['email'] ),
 				filter_var( $user_data['phone'], FILTER_SANITIZE_NUMBER_INT),
 				sanitize_text_field( $email_consent ),
-				sanitize_text_field( serialize( $user_data['location'] ) ),
-				serialize( $cart['cart_contents'] ),
+				sanitize_text_field( maybe_serialize( $user_data['location'] ) ),
+				maybe_serialize( $cart['cart_contents'] ),
+				sanitize_text_field( $cart['cart_hash'] ),
+				maybe_serialize( $cart['cart_meta'] ),
 				sanitize_text_field( $cart['cart_total'] ),
 				sanitize_text_field( $cart['cart_currency'] ),
 				sanitize_text_field( $cart['current_time'] ),
 				$other_fields,
+				sanitize_text_field( $user_ip ),
 				$cart['session_id'],
 				$admin->get_cart_type( 'abandoned' )
 			)
@@ -585,34 +608,45 @@ class CartBounty_Public{
 
 	/**
 	 * Method checks if current shopping cart has been saved in the past 2 hours (by default) basing upon session ID
-	 * Cooldown period introduced to prevent creating new abandoned carts during the same session after user has already placed a new order
+	 * or if the IP address and cart content hash in the last 10 minutes have been saved
+	 * Cooldown period introduced to prevent creating new abandoned carts during the same session after user has already placed a new order or
+	 * in case the session_id value gets changed quickly for each page reload and we would end up with multiple identical abandoned carts for the same user
 	 * New cart for the same user in the same session will be created once the cooldown period has ended
 	 *
 	 * @since    3.0
 	 * @return   boolean
-	 * @param    $session_id    Session ID
+	 * @param    array         $cart    			Cart data
+	 * @param    boolean       $user_ip    			Visitor's IP address
+	 * @param    boolean       $ignore_cooldown    	If cooldown should be igonerd or not. Used when reseting abandoned cart data for registered users
 	 */
-	function cart_saved( $session_id ){
+	function cart_saved( $cart, $user_ip = '', $ignore_cooldown = false ){
 		$saved = false;
 
-		if( $session_id !== NULL ){
+		if( $cart['session_id'] !== NULL ){
 			global $wpdb;
 			$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
 			$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
 			$time = $admin->get_time_intervals();
-			$cooldown_period = apply_filters( 'cartbounty_cart_cooldown_period', $time['two_hours'] );
+			$cooldown_period = 0;
+			$ip_cooldown = apply_filters( 'cartbounty_cart_ip_cooldown_period', $time['ten_minutes'] );
+			$cart_hash = md5( maybe_serialize( $cart['cart_contents'] ) );
 
-			//Checking if we have this abandoned cart in our database already
-			$result = $wpdb->get_var(
-				$wpdb->prepare(
-					"SELECT session_id
-					FROM $cart_table
-					WHERE session_id = %s AND
-					time > %s",
-					$session_id,
-					$cooldown_period
-				)
-			);
+			if( !$ignore_cooldown ){
+				$cooldown_period = apply_filters( 'cartbounty_cart_cooldown_period', $time['two_hours'] );
+			}
+
+			//First part of the select that looks for the same seesion ID in the given time period
+			$sql = "SELECT id FROM $cart_table WHERE ( session_id = %s AND time > %s )";
+			$params = [ $cart['session_id'], $cooldown_period ];
+
+			//Second part of the select if we know the IP address which looks for the same IP addres and cart contents in the given time period
+			if( !empty( $user_ip ) ){
+				$sql .= " OR ( ip_address = %s AND cart_hash = %s AND time > %s )";
+				$params = array_merge( $params, [ $user_ip, $cart_hash, $ip_cooldown ] );
+			}
+
+			$sql .= " LIMIT 1";
+			$result = $wpdb->get_var( $wpdb->prepare( $sql, $params ) );
 
 			if( $result ){
 				$saved = true;
@@ -661,7 +695,8 @@ class CartBounty_Public{
 				WC()->session->set('cartbounty_session_id', $customer_id);
 				$cart = $this->read_cart();
 				$user_data = $this->get_user_data();
-				$this->update_cart_and_user_data( $cart, $user_data ); //Updating logged in user cart data so we do not have anything that was entered in the checkout form prior the user signed in
+				$user_ip = $this->get_user_ip();
+				$this->update_cart_and_user_data( $cart, $user_data, $user_ip ); //Updating logged in user cart data so we do not have anything that was entered in the checkout form prior the user signed in
 
 			}else{
 				return;
@@ -792,17 +827,14 @@ class CartBounty_Public{
 			$product_array[] = $product_data;
 		}
 
-		$cart_contents = array(
-			'products' => $product_array,
-			'cart_data' => WC()->cart->get_cart_contents()
-		);
-
 		return $results_array = array(
 			'cart_total' 	=> $cart_total,
 			'cart_currency' => $cart_currency,
 			'current_time' 	=> $current_time,
 			'session_id' 	=> $session_id,
-			'cart_contents' => $cart_contents
+			'cart_contents' => $product_array,
+			'cart_hash' 	=> md5( maybe_serialize( $product_array ) ),
+			'cart_meta' 	=> WC()->cart->get_cart_contents()
 		);
 	}
 
@@ -971,7 +1003,7 @@ class CartBounty_Public{
 	 *
 	 * @since    8.4
 	 */
-	public function restore_block_checkout_fields() {
+	public function restore_block_checkout_fields(){
 
 		if( !apply_filters( 'cartbounty_restore_block_checkout', true ) ) return;
 
@@ -980,16 +1012,18 @@ class CartBounty_Public{
 		if( is_admin() || is_user_logged_in() ) return;
 
 		if( WC()->session ){
-			$session_id = WC()->session->get_customer_id();
-			$counter = get_transient( 'cartbounty_session' . $session_id );
 
-			if ( false === $counter ){
+			$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+			$session_id = WC()->session->get_customer_id();
+			$counter = $admin->get_cartbounty_transient( 'cartbounty_session' . $session_id );
+
+			if( !$counter ){
 				$counter = 0;
 			}
 
 			$counter++;
 
-			set_transient( 'cartbounty_session' . $session_id , $counter, 30 ); //30 second expiration
+			$admin->set_cartbounty_transient( 'cartbounty_session' . $session_id , $counter, 30 ); //30 second expiration
 
 			if( $counter < 5 ){
 				$this->update_woocommerce_database_session();
@@ -1290,9 +1324,10 @@ class CartBounty_Public{
 		if( !class_exists( 'WooCommerce' ) ) return; //If WooCommerce does not exist
 		
 		if( !$this->tool_enabled( 'exit_intent' ) || !WC()->cart ) return; //If Exit Intent disabled or WooCommerce cart does not exist
-		
-		$current_user_is_admin = current_user_can( 'manage_options' );
-		$output = $this->build_exit_intent_output($current_user_is_admin); //Creating the Exit Intent output
+
+		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$user_is_admin = $admin->user_is_admin();
+		$output = $this->build_exit_intent_output( $user_is_admin ); //Creating the Exit Intent output
 		echo $output;
 		echo "<script>localStorage.setItem( 'cartbounty_product_count', " . $this->get_cart_product_count() . " )</script>";
 	}
@@ -1396,14 +1431,16 @@ class CartBounty_Public{
 				break;
 		}
 
-		$current_user_is_admin = current_user_can( 'manage_options' );
+		$user_is_admin = $admin->user_is_admin();
 
-		if($test_mode_on && $current_user_is_admin){
+		if( $test_mode_on && $user_is_admin ){
 			//Outputing tool for Testing purposes to Administrators
 			return true;
-		}elseif($tool_enabled && !$test_mode_on && !is_user_logged_in()){
+
+		}elseif( $tool_enabled && !$test_mode_on && !is_user_logged_in() ){
 			//Outputing tool for all users who are not logged in
 			return true;
+			
 		}else{
 			//Tool is not enabled
 			return false;
@@ -1790,5 +1827,43 @@ class CartBounty_Public{
 		);
 
 		return implode( ', ', $selectors );
+	}
+
+	/**
+	 * Get user IP address
+	 * HTTP_X_FORWARDED_FOR can contain a chain of comma-separated
+	 * addresses. The first one usually is the original client, but it can't be trusted for authenticity
+	 *
+	 * @since    8.8
+	 * @return   string
+	 */
+	function get_user_ip(){
+		$ip = '';
+
+		$headers = array(
+			'HTTP_CLIENT_IP',
+			'HTTP_X_FORWARDED_FOR',
+			'HTTP_X_FORWARDED',
+			'HTTP_X_CLUSTER_CLIENT_IP',
+			'HTTP_FORWARDED_FOR',
+			'HTTP_FORWARDED',
+			'REMOTE_ADDR',
+		);
+
+		foreach( $headers as $header ) {
+			
+			if ( array_key_exists( $header, $_SERVER ) ){
+				$address_chain = explode( ',', $_SERVER[$header] );
+				$ip = trim( $address_chain[0] );
+
+				break;
+			}
+		}
+
+		if( !filter_var( $ip, FILTER_VALIDATE_IP ) ) { //Check if a valid IP provided
+			$ip = '';
+		}
+
+		return $ip;
 	}
 }

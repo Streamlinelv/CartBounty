@@ -43,11 +43,14 @@ class CartBounty_Activator{
 			email_consent TINYINT DEFAULT 0,
 			location VARCHAR(100),
 			cart_contents LONGTEXT,
+			cart_hash CHAR(32) DEFAULT NULL,
+			cart_meta LONGTEXT DEFAULT NULL,
 			cart_total DECIMAL(10,2),
 			currency VARCHAR(10),
 			time DATETIME DEFAULT '0000-00-00 00:00:00',
 			session_id VARCHAR(60),
 			other_fields LONGTEXT,
+			ip_address VARCHAR(100),
 			mail_sent TINYINT NOT NULL DEFAULT 0,
 			wp_unsubscribed TINYINT DEFAULT 0,
 			wp_steps_completed INT(3) DEFAULT 0,
@@ -67,109 +70,6 @@ class CartBounty_Activator{
 		dbDelta( $sql );
 
 		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
-
-		/**
-		 * Handling cart transfer from the old captured_wc_fields table to new one
-		 * Temporary block since version 5.0.1. Will be removed in future versions
-		 *
-		 * @since    5.0.1
-		 */
-		function cartbounty_transfer_carts( $wpdb, $cart_table, $old_cart_table ){
-			$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
-		    $misc_settings = $admin->get_settings( 'misc_settings' );
-
-		    if(!cartbounty_old_table_exists( $wpdb, $old_cart_table )){ //If old table no longer exists, exit
-		    	return;
-		    }
-
-		    if( !$misc_settings['table_transferred'] ){ //If we have not yet transfered carts to the new table
-		    	$old_carts = $wpdb->get_results( //Selecting all rows that are not empty
-	    			"SELECT * FROM $old_cart_table
-	    			WHERE cart_contents != ''
-	    			"
-		    	);
-
-		    	if($old_carts){ //If we have carts
-		    		$imported_cart_count = 0;
-		    		$batch_count = 0; //Keeps count of current batch of data to insert
-		    		$batches = array(); //Array containing the batches of import since SQL is having troubles importing too many rows at once
-					$abandoned_cart_data = array();
-					$placeholders = array();
-
-					foreach($old_carts as $key => $cart){ // Looping through abandoned carts to create the arrays
-						$batch_count++;
-
-						array_push(
-							$abandoned_cart_data,
-							sanitize_text_field( $cart->id ),
-							sanitize_text_field( $cart->name ),
-							sanitize_text_field( $cart->surname ),
-							sanitize_email( $cart->email ),
-							sanitize_text_field( $cart->phone ),
-							sanitize_text_field( $cart->location ),
-							sanitize_text_field( $cart->cart_contents ),
-							sanitize_text_field( $cart->cart_total ),
-							sanitize_text_field( $cart->currency ),
-							sanitize_text_field( $cart->time ),
-							sanitize_text_field( $cart->session_id ),
-							sanitize_text_field( $cart->mail_sent ),
-							sanitize_text_field( $cart->other_fields )
-						);
-						$placeholders[] = "( %d, %s, %s, %s, %s, %s, %s, %0.2f, %s, %s, %s, %d, %s )";
-
-						if($batch_count >= 100){ //If we get a full batch, add it to the array and start preparing a new one
-							$batches[] = array(
-								'data'			=>	$abandoned_cart_data,
-								'placeholders'	=>	$placeholders
-							);
-							$batch_count = 0;
-							$abandoned_cart_data = array();
-							$placeholders = array();
-						}
-					}
-
-					//In case something is left at the end of the loop, we add it to the batches so we do not loose any abandoned carts during the import process
-					if($abandoned_cart_data){
-						$batches[] = array(
-							'data'			=>	$abandoned_cart_data,
-							'placeholders'	=>	$placeholders
-						);
-					}
-					
-					foreach ($batches as $key => $batch) { //Looping through the batches and importing the carts
-						$query = "INSERT INTO ". $cart_table ." (id, name, surname, email, phone, location, cart_contents, cart_total, currency, time, session_id, mail_sent, other_fields) VALUES ";
-						$query .= implode(', ', $batch['placeholders']);
-						$count = $wpdb->query( $wpdb->prepare("$query ", $batch['data']));
-						$imported_cart_count = $imported_cart_count + $count;
-					}
-				}
-
-				$misc_settings['table_transferred'] = true;
-				update_option( 'cartbounty_misc_settings', $misc_settings ); //Making sure the user is not allowed to transfer carts more than once
-				$wpdb->query( "DROP TABLE IF EXISTS $old_cart_table" ); //Removing old table from the database
-			}
-		}
-
-		/**
-		 * Determine if we have old CartBounty cart table still present
-		 * Temporary block since version 5.0.1. Will be removed in future versions
-		 *
-		 * @since    5.0.1
-		 * @return 	 Boolean
-		 */
-		function cartbounty_old_table_exists( $wpdb, $old_cart_table ){
-			$exists = false;
-			$table_exists = $wpdb->query(
-				"SHOW TABLES LIKE '{$old_cart_table}'"
-			);
-			if($table_exists){ //In case table exists
-				$exists = true;
-			}
-			return $exists;
-		}
-
-		//Temporary function since version 5.0.1. Will be removed in future releases
-		cartbounty_transfer_carts( $wpdb, $cart_table, $old_cart_table );
 
 		/**
 		 * Since version 7.0.7.1
@@ -254,8 +154,8 @@ class CartBounty_Activator{
 		 * This code will be removed in later versions
 		 */
 		function transfer_deprecated_options(){
-
-			if ( get_option( 'cartbounty_notification_email' ) || get_option( 'cartbounty_lift_email' ) || get_option( 'cartbounty_hide_images' ) || get_option( 'cartbounty_exclude_anonymous_carts' ) || get_option( 'cartbounty_exclude_recovered' ) || get_option( 'cartbounty_notification_frequency' ) ){ //If deprecated options detected
+			//Transfering general settings options
+			if( get_option( 'cartbounty_notification_email' ) || get_option( 'cartbounty_lift_email' ) || get_option( 'cartbounty_hide_images' ) || get_option( 'cartbounty_exclude_anonymous_carts' ) || get_option( 'cartbounty_exclude_recovered' ) || get_option( 'cartbounty_notification_frequency' ) ){ //If deprecated options detected
 				$notification_frequency = get_option( 'cartbounty_notification_frequency' );
 
 				if( isset( $notification_frequency['interval'] ) ){
@@ -333,7 +233,6 @@ class CartBounty_Activator{
 					'time_bubble_steps_displayed' 		=> get_option( 'cartbounty_last_time_bubble_steps_displayed' ),
 					'times_review_declined' 			=> get_option( 'cartbounty_times_review_declined' ),
 					'email_table_exists' 				=> get_option( 'cartbounty_email_table_exists' ),
-					'table_transferred' 				=> get_option( 'cartbounty_transferred_table' ),
 					'converted_minutes_to_miliseconds' 	=> get_option( 'cartbounty_converted_minutes_to_miliseconds' ),
 				);
 
@@ -371,7 +270,6 @@ class CartBounty_Activator{
 			delete_option( 'cartbounty_last_time_bubble_steps_displayed' );
 			delete_option( 'cartbounty_times_review_declined' );
 			delete_option( 'cartbounty_email_table_exists' );
-			delete_option( 'cartbounty_transferred_table' );
 			delete_option( 'cartbounty_converted_minutes_to_miliseconds' );
 		}
 

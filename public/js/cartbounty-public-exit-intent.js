@@ -70,7 +70,6 @@
 		}
 
 		function increaseProductCount(){ //Increasing product count
-			
 			if( localStorage.getItem( 'cartbounty_product_count' ) === null ){
 				localStorage.setItem( 'cartbounty_product_count', 1 );
 
@@ -80,20 +79,37 @@
 		}
 
 		function decreaseProductCount(){ //Decreasing product count
-			
 			if( localStorage.getItem( 'cartbounty_product_count' ) === null ) return;
 
 			localStorage.setItem( 'cartbounty_product_count', parseInt( localStorage.getItem( 'cartbounty_product_count' ) ) - 1 );
 		}
 
 		function closeExitIntentForm(){ //Close exit intent window
- 		    $('#cartbounty-exit-intent-form').removeClass('cartbounty-visible'); //Hide form
-        	$('#cartbounty-exit-intent-form-backdrop').removeClass('cartbounty-visible'); //Hide backdrop
-	 	}
+			$('#cartbounty-exit-intent-form').addClass('cartbounty-fade-out'); //Hide form
+
+			setTimeout(function(){
+				$('#cartbounty-exit-intent-form').removeClass('cartbounty-visible'); //Hide form
+				$('#cartbounty-exit-intent-form-backdrop').removeClass('cartbounty-visible'); //Hide backdrop
+			}, 300);
+		}
+
+	 	//Handling Exit Intent form submit button. Making sure the page is not reloaded
+		function handleFormAfterSubmit(e){
+			e.preventDefault();
+
+			//If form is invalid, let browser show validation UI
+			if (!this.checkValidity()){
+				this.reportValidity(); //Triggers browser validation tooltip
+				return;
+			}
+
+			closeExitIntentForm();
+		}
 
 		jQuery(document).on("mouseleave", showExitIntentForm); //Displaying Exit intent if the mouse leaves the window
 		jQuery("#cartbounty-exit-intent-email").on("keyup keypress change", getExitIntentEmail ); //All action happens on or after changing Email field. Data saved to Database only after Email fields have been entered.
 		jQuery("#cartbounty-exit-intent-close, #cartbounty-exit-intent-form-backdrop").on("click", closeExitIntentForm ); //Close Exit intent window
+		jQuery('#cartbounty-exit-intent-form form').on('submit', handleFormAfterSubmit); //Closing Exit Intent form
 		jQuery(document).on("added_to_cart", increaseProductCount ); //Increasing product count if Ajax Add to Cart button pressed
 		jQuery(document).on("removed_from_cart", decreaseProductCount ); //Firing the function if item is removed from cart via Ajax 
 	});

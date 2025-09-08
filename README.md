@@ -17,7 +17,7 @@ All online stores suffer from shopping cart abandonment. [CartBounty](https://ww
 
 With thoughtful user experience, built-in efficiency tools and ability to integrate with other systems, CartBounty is a powerful addition to your marketing arsenal.
 
-[youtube https://www.youtube.com/watch?v=Sb4DpkDilw0]
+[youtube https://youtu.be/tayOOmSOcsk]
 
 #### Live shopping cart monitoring and reports
 
@@ -157,6 +157,8 @@ Filters:
 * cartbounty_disable_input_bot_test
 * cartbounty_restore_classic_checkout
 * cartbounty_restore_block_checkout
+* cartbounty_cart_cooldown_period
+* cartbounty_cart_ip_cooldown_period
 
 Here is an example how to change the From email that sends out notification emails using "cartbounty_from_email" filter. Please add it to your theme's functions.php file:
 

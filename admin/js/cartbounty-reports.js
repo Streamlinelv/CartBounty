@@ -100,6 +100,12 @@
 			jQuery("#cartbounty-daypicker-apply").on("click", updateReports);
 			jQuery("#cartbounty-daypicker-close").on("click", closeCalendar);
 			jQuery(".cartbounty-progress").on("click", addLoadingIndicator );
+
+			//Display reports on first page load
+			setTimeout(function(){
+				updateReports.call(jQuery('#cartbounty-daypicker-apply'), null);
+			}, 300);
+
 		}
 
 		function getTipOptions(){
@@ -127,15 +133,14 @@
 			var chartContainer = jQuery('#cartbounty-charts-container');
 			var periodDropdownContainer = jQuery('#cartbounty-period-dropdown-container');
 			var topProductContainer = jQuery('#cartbounty-top-abandoned-products-container');
-			var map = jQuery('#cartbounty-country-map-container');
-			var mapContainer = jQuery('#cartbounty-abandoned-carts-by-country-container');
+			var map = jQuery('#cartbounty-abandoned-carts-by-country-container');
 			var skeletonScreenClass = 'cartbounty-loading-skeleton-screen';
 
 			quickContainer.addClass(skeletonScreenClass);
 			chartContainer.addClass(skeletonScreenClass);
 			periodDropdownContainer.addClass(skeletonScreenClass);
 			topProductContainer.addClass(skeletonScreenClass);
-			mapContainer.addClass(skeletonScreenClass);
+			map.addClass(skeletonScreenClass);
 
 			var data = {
 				nonce				: element.data('nonce'),
@@ -149,7 +154,8 @@
 
 			jQuery.post(cartbounty_admin_data.ajaxurl, data,
 			function(response){
-				if ( response.success == true ){
+
+				if( response.success == true ){
 					element.removeClass('cartbounty-loading');
 					history.pushState({}, '', response.data.url);
 					periodDropdownContainer.html(response.data.period_dropdown);
@@ -170,7 +176,7 @@
 				chartContainer.removeClass(skeletonScreenClass);
 				periodDropdownContainer.removeClass(skeletonScreenClass);
 				topProductContainer.removeClass(skeletonScreenClass);
-				mapContainer.removeClass(skeletonScreenClass);
+				map.removeClass(skeletonScreenClass);
 			});
 		}
 
@@ -548,7 +554,7 @@
 				//Function for calculating how wide the map should be
 				function calculateMapWidth(){
 					var mapWidth = container.width();
-					return mapWidth;
+					return mapWidth || 640; //If map width is undefined, setting map width to 640
 				}
 
 				const mapWidth = calculateMapWidth();
@@ -570,7 +576,12 @@
 					var abandonedCartData = [];
 
 					if(container.length > 0){ //If map element has been found
-						abandonedCartData = window['abandoned_cart_country_data'];
+						if (Array.isArray(window.abandoned_cart_country_data)) {
+							abandonedCartData = window.abandoned_cart_country_data;
+						} else {
+							abandonedCartData = [];
+						}
+
 					}
 
 					//Calculate map height based on desired aspect ratio
@@ -646,7 +657,7 @@
 		}
 
 		initializeCharts();
-		initializeMap();
+		initializeMap(); //Display map on Dashboard page load
 
 		jQuery(document).on('change', '#cartbounty-abandoned-cart-stats-options input', updateReportsOptions);
 		jQuery(".cartbounty-report-options-trigger").on("click", toggleReportOptions );
