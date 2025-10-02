@@ -60,7 +60,7 @@
 					timer = setTimeout(function(){
 						jQuery.post(cartbounty_co.ajaxurl, data,
 						function(response) {
-							if(response.success){ //If successfuly saved data
+							if(response.success){ //If successfully saved data
 								localStorage.setItem('cartbounty_contact_saved', true);
 							}
 						});

@@ -286,7 +286,7 @@ class CartBounty_Public{
 	 * Method updates only cart related data excluding customer details
 	 *
 	 * @since    5.0
-	 * @param    Array    	$cart    		Cart contents inclding cart session ID
+	 * @param    Array    	$cart    		Cart contents including cart session ID
 	 * @param    string     $user_ip    	User's IP address
 	 */
 	function update_cart_data( $cart, $user_ip = '' ){
@@ -325,7 +325,7 @@ class CartBounty_Public{
 	 * Method updates both customer data and contents of the cart
 	 *
 	 * @since    5.0
-	 * @param    Array    	$cart    		Cart contents inclding cart session ID
+	 * @param    Array    	$cart    		Cart contents including cart session ID
 	 * @param    Array    	$user_data    	User's data
 	 * @param    string     $user_ip    	User's IP address
 	 */
@@ -617,7 +617,7 @@ class CartBounty_Public{
 	 * @return   boolean
 	 * @param    array         $cart    			Cart data
 	 * @param    boolean       $user_ip    			Visitor's IP address
-	 * @param    boolean       $ignore_cooldown    	If cooldown should be igonerd or not. Used when reseting abandoned cart data for registered users
+	 * @param    boolean       $ignore_cooldown    	If cooldown should be igonerd or not. Used when resetting abandoned cart data for registered users
 	 */
 	function cart_saved( $cart, $user_ip = '', $ignore_cooldown = false ){
 		$saved = false;
@@ -635,11 +635,11 @@ class CartBounty_Public{
 				$cooldown_period = apply_filters( 'cartbounty_cart_cooldown_period', $time['two_hours'] );
 			}
 
-			//First part of the select that looks for the same seesion ID in the given time period
+			//First part of the select that looks for the same session ID in the given time period
 			$sql = "SELECT id FROM $cart_table WHERE ( session_id = %s AND time > %s )";
 			$params = [ $cart['session_id'], $cooldown_period ];
 
-			//Second part of the select if we know the IP address which looks for the same IP addres and cart contents in the given time period
+			//Second part of the select if we know the IP address which looks for the same IP address and cart contents in the given time period
 			if( !empty( $user_ip ) ){
 				$sql .= " OR ( ip_address = %s AND cart_hash = %s AND time > %s )";
 				$params = array_merge( $params, [ $user_ip, $cart_hash, $ip_cooldown ] );
@@ -761,7 +761,7 @@ class CartBounty_Public{
 	 */
 	function read_cart(){
 
-		if( !WC()->cart ) return; //Exit if Woocommerce cart has not been initialized
+		if( !WC()->cart ) return; //Exit if WooCommerce cart has not been initialized
 
 		//Retrieving cart total value and currency
 		$cart_total = WC()->cart->total;
@@ -1265,7 +1265,7 @@ class CartBounty_Public{
 
 		if( !WC()->session ) return; //If session does not exist, exit function
 
-		if( WC()->session->get( 'cartbounty_recovered_count_increased' ) ) return; //Exit fnction in case we already have run this once
+		if( WC()->session->get( 'cartbounty_recovered_count_increased' ) ) return; //Exit function in case we already have run this once
 
 		WC()->session->set( 'cartbounty_recovered_count_increased', 1 );
 
@@ -1316,7 +1316,7 @@ class CartBounty_Public{
 	}
 
 	/**
-	 * Outputing email form if anonymous user who is not logged in wants to leave with a full shopping cart
+	 * Outputting email form if anonymous user who is not logged in wants to leave with a full shopping cart
 	 *
 	 * @since    3.0
 	 */
@@ -1434,11 +1434,11 @@ class CartBounty_Public{
 		$user_is_admin = $admin->user_is_admin();
 
 		if( $test_mode_on && $user_is_admin ){
-			//Outputing tool for Testing purposes to Administrators
+			//Outputting tool for Testing purposes to Administrators
 			return true;
 
 		}elseif( $tool_enabled && !$test_mode_on && !is_user_logged_in() ){
-			//Outputing tool for all users who are not logged in
+			//Outputting tool for all users who are not logged in
 			return true;
 			
 		}else{
@@ -1531,11 +1531,11 @@ class CartBounty_Public{
 	 * @param    string    $string $template_path - path to templates.
 	 * @param    string	   $default_path - default path to template files.
 	 */
-	function get_template( $template_name, $args = array(), $tempate_path = '', $default_path = '' ) {
+	function get_template( $template_name, $args = array(), $template_path = '', $default_path = '' ) {
 		if ( is_array( $args ) && isset( $args ) ){
 			extract( $args );
 		}
-		$template_file = $this->get_template_path($template_name, $tempate_path, $default_path);
+		$template_file = $this->get_template_path($template_name, $template_path, $default_path);
 		
 		if ( !file_exists( $template_file ) ){ //Handling error output in case template file does not exist
 			_doing_it_wrong( __FUNCTION__, sprintf( 'Template file %s does not exist.', esc_html( $template_file ) ), '6.1' );

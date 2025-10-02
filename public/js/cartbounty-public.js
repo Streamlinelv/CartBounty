@@ -48,7 +48,7 @@
 						jQuery.post(cartbounty_co.ajaxurl, data,
 						function(response){
 							
-							if(response.success){ //If successfuly saved data
+							if(response.success){ //If successfully saved data
 								localStorage.setItem('cartbounty_contact_saved', true);
 								removeExitIntentForm(); //If we have successfully captured abandoned cart, we do not have to display Exit intent form anymore
 							}
@@ -107,7 +107,7 @@
 
 			jQuery.post(cartbounty_co.ajaxurl, data, //Send data over to backend for saving
 			function(response) {
-				if(response.success){ //If data successfuly saved
+				if(response.success){ //If data successfully saved
 					localStorage.setItem('cartbounty_contact_saved', true);
 					removeCustomFields();
 					removeExitIntentForm();
@@ -171,7 +171,7 @@
 				setTimeout(function(){
 					jQuery.post(cartbounty_co.ajaxurl, data, //Send data over to backend for saving
 					function(response){
-						if(response.success){ //If data successfuly saved
+						if(response.success){ //If data successfully saved
 							localStorage.removeItem('cartbounty_bot_test_passed');
 						}
 					});
