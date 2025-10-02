@@ -140,7 +140,7 @@
 				action		: "force_sync"
 			};
 
-			jQuery.post(cartbounty_admin_data.ajaxurl, data, //Ajaxurl coming from localized script and contains the link to wp-admin/admin-ajax.php file that handles AJAX requests on Wordpress
+			jQuery.post(cartbounty_admin_data.ajaxurl, data, //Ajaxurl coming from localized script and contains the link to wp-admin/admin-ajax.php file that handles AJAX requests on WordPress
 			function(response){
 				button.removeClass('cartbounty-loading');
 			});

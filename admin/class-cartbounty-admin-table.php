@@ -222,7 +222,7 @@ class CartBounty_Table extends WP_List_Table{
 		
 		if( $cart_contents ){
 
-			if( $admin->get_settings( 'settings', 'hide_images' ) ){ //Outputing Cart contents as a list
+			if( $admin->get_settings( 'settings', 'hide_images' ) ){ //Outputting Cart contents as a list
 				$output = '<ol class="cartbounty-product-list">';
 
 				foreach( $cart_contents as $product ){
@@ -313,13 +313,13 @@ class CartBounty_Table extends WP_List_Table{
 		$date_title = date_i18n( 'M d, Y H:i:s', $time->getTimestamp() );
 		$utc_time = $time->format( 'U' );
 
-		if( $utc_time > strtotime( '-1 day', current_time( 'timestamp' ) ) ){ //In case the abandoned cart is newly captued
+		if( $utc_time > strtotime( '-1 day', current_time( 'timestamp' ) ) ){ //In case the abandoned cart is newly captured
 			 $friendly_time = sprintf(
 				/* translators: %1$s - Time, e.g. 1 minute, 5 hours */
 				esc_html__( '%1$s ago', 'woo-save-abandoned-carts' ),
 				human_time_diff( $utc_time, current_time( 'timestamp' ) )
 			);
-		}else{ //In case the abandoned cart is older tahn 24 hours
+		}else{ //In case the abandoned cart is older than 24 hours
 			$friendly_time = date_i18n( 'M d, Y', $time->getTimestamp() );
 		}
 

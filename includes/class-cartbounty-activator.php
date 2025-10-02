@@ -82,20 +82,20 @@ class CartBounty_Activator{
 
 		/**
 		 * Since version 7.1.6
-		 * Transfering time to miliseconds
+		 * Transferring time to milliseconds
 		 * This code will be removed in later versions
 		 */
-		function transfer_time_to_miliseconds(){
+		function transfer_time_to_milliseconds(){
 			$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
 			$misc_settings = $admin->get_settings( 'misc_settings' );
 
 			if( CARTBOUNTY_VERSION_NUMBER == $misc_settings['version_number'] || empty( $misc_settings['version_number'] ) ){ //If this is a fresh install or plugin activation
-				$misc_settings['converted_minutes_to_miliseconds'] = true;
-				update_option( 'cartbounty_misc_settings', $misc_settings ); //setting this variable as we do not require to convert minutes to miliseconds for new installs or activations
+				$misc_settings['converted_minutes_to_milliseconds'] = true;
+				update_option( 'cartbounty_misc_settings', $misc_settings ); //setting this variable as we do not require to convert minutes to milliseconds for new installs or activations
 				return;
 			}
 
-			if( $misc_settings['converted_minutes_to_miliseconds'] ) return;
+			if( $misc_settings['converted_minutes_to_milliseconds'] ) return;
 
 			$wordpress_steps = get_option( 'cartbounty_automation_steps' );
 			$notification_frequency = get_option( 'cartbounty_notification_frequency' );
@@ -107,7 +107,7 @@ class CartBounty_Activator{
 					foreach( $wordpress_steps as $key => $step ){
 						
 						if( isset( $wordpress_steps[$key]['interval'] ) ){
-							$wordpress_steps[$key]['interval'] = $admin->convert_minutes_to_miliseconds( $step['interval'] );
+							$wordpress_steps[$key]['interval'] = $admin->convert_minutes_to_milliseconds( $step['interval'] );
 						}
 					}
 					update_option( 'cartbounty_automation_steps', $wordpress_steps );
@@ -118,12 +118,12 @@ class CartBounty_Activator{
 			if( !empty( $notification_frequency ) ){
 
 				if( isset( $notification_frequency['hours'] ) ){
-					$notification_frequency['interval'] = $admin->convert_minutes_to_miliseconds( $notification_frequency['hours'] );
+					$notification_frequency['interval'] = $admin->convert_minutes_to_milliseconds( $notification_frequency['hours'] );
 					update_option( 'cartbounty_notification_frequency', $notification_frequency );
 				}
 			}
 
-			$misc_settings['converted_minutes_to_miliseconds'] = true;
+			$misc_settings['converted_minutes_to_milliseconds'] = true;
 			update_option( 'cartbounty_misc_settings', $misc_settings );
 
 			/**
@@ -136,7 +136,7 @@ class CartBounty_Activator{
 
 		}
 
-		transfer_time_to_miliseconds();
+		transfer_time_to_milliseconds();
 
 		/**
 		 * Since version 8.0
@@ -150,11 +150,11 @@ class CartBounty_Activator{
 
 		/**
 		 * Since version 8.1
-		 * Transfering deprecated multiple sepparate options into a acouple single options.
+		 * Transferring deprecated multiple sepparate options into a acouple single options.
 		 * This code will be removed in later versions
 		 */
 		function transfer_deprecated_options(){
-			//Transfering general settings options
+			//Transferring general settings options
 			if( get_option( 'cartbounty_notification_email' ) || get_option( 'cartbounty_lift_email' ) || get_option( 'cartbounty_hide_images' ) || get_option( 'cartbounty_exclude_anonymous_carts' ) || get_option( 'cartbounty_exclude_recovered' ) || get_option( 'cartbounty_notification_frequency' ) ){ //If deprecated options detected
 				$notification_frequency = get_option( 'cartbounty_notification_frequency' );
 
@@ -174,7 +174,7 @@ class CartBounty_Activator{
 				update_option( 'cartbounty_main_settings', $existing_settings );
 			}
 
-			//Transfering Exit Intent options
+			//Transferring Exit Intent options
 			if ( get_option( 'cartbounty_exit_intent_status' ) || get_option( 'cartbounty_exit_intent_type' ) || get_option( 'cartbounty_exit_intent_heading' ) || get_option( 'cartbounty_exit_intent_content' ) || get_option( 'cartbounty_exit_intent_image' ) ){ //If deprecated option detected
 				$existing_settings = array(
 					'status' 			=> get_option( 'cartbounty_exit_intent_status' ),
@@ -190,7 +190,7 @@ class CartBounty_Activator{
 				update_option( 'cartbounty_exit_intent_settings', $existing_settings );
 			}
 
-			//Transfering reports fields
+			//Transferring reports fields
 			if( get_option( 'cartbounty_active_quick_stats' ) || get_option( 'cartbounty_active_charts' ) || get_option( 'cartbounty_chart_type' ) || get_option( 'cartbounty_top_product_count' ) ){ //If deprecated option detected
 				$existing_settings = array(
 					'quick_stats' 			=> get_option( 'cartbounty_active_quick_stats' ),
@@ -202,7 +202,7 @@ class CartBounty_Activator{
 				update_option( 'cartbounty_report_settings', $existing_settings );
 			}
 
-			//Transfering WordPress recovery fields
+			//Transferring WordPress recovery fields
 			if( get_option( 'cartbounty_automation_from_name' ) || get_option( 'cartbounty_automation_from_email' ) || get_option( 'cartbounty_automation_reply_email' ) ){ //If deprecated option detected
 				$existing_settings = array(
 					'from_name' 			=> get_option( 'cartbounty_automation_from_name' ),
@@ -213,7 +213,7 @@ class CartBounty_Activator{
 				update_option( 'cartbounty_automation_settings', $existing_settings );
 			}
 
-			//Transfering notices
+			//Transferring notices
 			if( get_option( 'cartbounty_cron_warning' ) ){ //If deprecated option detected
 				$existing_settings = array(
 					'cron_warning' 		=> get_option( 'cartbounty_cron_warning' ),
@@ -222,7 +222,7 @@ class CartBounty_Activator{
 				update_option( 'cartbounty_submitted_warnings', $existing_settings );
 			}
 
-			//Transfering misc settings
+			//Transferring misc settings
 			if( get_option( 'cartbounty_version_number' ) ){ //If deprecated option detected
 				$existing_settings = array(
 					'version_number' 					=> get_option( 'cartbounty_version_number' ),
@@ -233,7 +233,7 @@ class CartBounty_Activator{
 					'time_bubble_steps_displayed' 		=> get_option( 'cartbounty_last_time_bubble_steps_displayed' ),
 					'times_review_declined' 			=> get_option( 'cartbounty_times_review_declined' ),
 					'email_table_exists' 				=> get_option( 'cartbounty_email_table_exists' ),
-					'converted_minutes_to_miliseconds' 	=> get_option( 'cartbounty_converted_minutes_to_miliseconds' ),
+					'converted_minutes_to_milliseconds' 	=> get_option( 'cartbounty_converted_minutes_to_milliseconds' ),
 				);
 
 				update_option( 'cartbounty_misc_settings', $existing_settings );
@@ -270,7 +270,7 @@ class CartBounty_Activator{
 			delete_option( 'cartbounty_last_time_bubble_steps_displayed' );
 			delete_option( 'cartbounty_times_review_declined' );
 			delete_option( 'cartbounty_email_table_exists' );
-			delete_option( 'cartbounty_converted_minutes_to_miliseconds' );
+			delete_option( 'cartbounty_converted_minutes_to_milliseconds' );
 		}
 
 		transfer_deprecated_options();

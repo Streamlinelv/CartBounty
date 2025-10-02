@@ -212,7 +212,7 @@ class CartBounty_Reports{
 	 * @since    8.0
 	 * @return   boolean
 	 * @param    string     $item    		  	  New active item
-	 * @param    string     $status    		  	  Weather the item must be enabled or disabled e.g. 'include'/ 'remove'
+	 * @param    string     $status    		  	  Whether the item must be enabled or disabled e.g. 'include'/ 'remove'
 	 * @param    string     $type    		  	  Type of data to return
 	 */
 	private function update_active_reports( $item, $status, $type = 'quick_stats' ){
@@ -544,7 +544,7 @@ class CartBounty_Reports{
 	 */
 	public function handle_ajax_submit(){
 		
-		if( $this->is_valid_ajax_request( 'period_submit' ) ){ //If this is a valid ajax request coming from preiod submit form
+		if( $this->is_valid_ajax_request( 'period_submit' ) ){ //If this is a valid ajax request coming from period submit form
 			$response = array(
 				'report_data'		=> $this->display_quick_stats(),
 				'chart_data'		=> $this->display_charts(),
@@ -1038,7 +1038,7 @@ class CartBounty_Reports{
 	/**
 	 * Prepare array of different time intervals used for retrieving various report periods
 	 * Time periods:
-	 *		- today:			Period of curent day starting from 00:00:00 until end of today at 23:59:59
+	 *		- today:			Period of current day starting from 00:00:00 until end of today at 23:59:59
 	 *		- yesterday:		Yesterday starting from 00:00:00 until end of yesterday at 23:59:59
 	 *		- week-to-date:		Period of current week starting from Monday 00:00:00 until end of today at 23:59:59
 	 *		- last-week:		Last week, from Monday 00:00:00 to Sunday 23:59:59
@@ -1265,7 +1265,7 @@ class CartBounty_Reports{
 			'name' 		=> $this->get_date_periods($report_parameters['period']),
 		);
 
-		if( $user_locale != 'en' ){ //No need to set locale in case we have English language alreayd set
+		if( $user_locale != 'en' ){ //No need to set locale in case we have English language already set
 			$locale = $user_locale;
 		}
 		
@@ -1509,7 +1509,7 @@ class CartBounty_Reports{
 		$intervals = $this->get_time_intervals( $report_parameters['period'], $custom_start, $custom_end );
 		$intervals['compare'] = $report_parameters['compare'];
 
-		//Setting compre period values according to selected compare period
+		//Setting compare period values according to selected compare period
 		if( $report_parameters['compare'] == 'previous-year'){ //In case comparing to previous year period
 			$intervals['compare_start_date'] = $intervals['previous_year_start'];
 			$intervals['compare_end_date'] = $intervals['previous_year_end'];
@@ -1523,7 +1523,7 @@ class CartBounty_Reports{
 	}
 
 	/**
-	 * Method is necessary for formating date coming from DayPicker input field to a date that can be used in a URL
+	 * Method is necessary for formatting date coming from DayPicker input field to a date that can be used in a URL
 	 *
 	 * @since    8.0
 	 * @return   string
@@ -1613,7 +1613,7 @@ class CartBounty_Reports{
 	 *
 	 * @since    8.0
 	 * @return   array
-	 * @param    string     $report_part    		  	Weather a specific report part should only be prepared
+	 * @param    string     $report_part    		  	Whether a specific report part should only be prepared
 	 */
 	private function get_report_data( $report_part = false ){
 		$report_data = array();
@@ -1673,7 +1673,7 @@ class CartBounty_Reports{
 	 *
 	 * @since    8.0
 	 * @return   array
-	 * @param    string     $report_part    		  	Weather a specific report part should only be prepared
+	 * @param    string     $report_part    		  	Whether a specific report part should only be prepared
 	 */
 	private function prepare_active_reports( $report_part = false ){
 		$active_reports = $this->get_active_reports();
@@ -2066,7 +2066,7 @@ class CartBounty_Reports{
 		$result = array();
 
 		if( !empty( $data ) ){
-			$full_period = $this->fill_mising_dates( $data, $start_date, $end_date );
+			$full_period = $this->fill_missing_dates( $data, $start_date, $end_date );
 			
 			foreach( $full_period as $date => $count ){
 				$result[] = array(
@@ -2287,20 +2287,20 @@ class CartBounty_Reports{
 	 * @param    array            $start_date          	Start date
 	 * @param    array            $end_date           	End date
 	 */
-	private function fill_mising_dates( $data, $start_date, $end_date ){
+	private function fill_missing_dates( $data, $start_date, $end_date ){
 		$period = array();
 		$start_date = strtotime( $start_date );
 		$end_date = strtotime( $end_date );
 
 		// Loop over each date between start date and end date
 		while( $start_date <= $end_date ){
-			$formated_start_date = date( 'Y-m-d', $start_date ); //Converting current timestamp to Y-m-d format
+			$formatted_start_date = date( 'Y-m-d', $start_date ); //Converting current timestamp to Y-m-d format
 
 			//If the date is in the original array, use the existing value, otherwise, set value to 0
-			if( isset( $data[$formated_start_date] ) ){
-				$period[$formated_start_date] = $data[$formated_start_date];
+			if( isset( $data[$formatted_start_date] ) ){
+				$period[$formatted_start_date] = $data[$formatted_start_date];
 			}else{
-				$period[$formated_start_date] = 0;
+				$period[$formatted_start_date] = 0;
 			}
 
 			$start_date = strtotime( '+1 day', $start_date ); //Moving on to the next day
