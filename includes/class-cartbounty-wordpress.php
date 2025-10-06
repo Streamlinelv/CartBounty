@@ -80,6 +80,28 @@ class CartBounty_WordPress{
 	}
 
 	/**
+	 * Checking total number of activated steps and determines which step should be accessible
+	 * Returns a class if the step is should not be accessible
+	 * First automation step is always accessible
+	 *
+	 * @since    8.9
+	 * @return   string
+	 * @param    integer    $automation				Automation number
+	 */
+	public function check_if_accessible( $automation = false ){
+		$class = '';
+		$active_steps = $this->get_active_steps();
+		
+		if( $automation != 0 ){ //If we are not looking at first automation step
+			if( $automation > count( $active_steps ) ){
+				$class = " cartbounty-step-disabled";
+			}
+		}
+
+		echo $class;
+	}
+
+	/**
 	 * Checking if WordPress automation enabled. At least one email template should be enabled
 	 *
 	 * @since    7.0
@@ -117,7 +139,7 @@ class CartBounty_WordPress{
 		//Excluding finished automations, unsubscried carts
 		$carts = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT id, email, session_id, time, wp_steps_completed
+				"SELECT id, email, session_id, time, wp_steps_completed, wp_last_sent
 				FROM {$cart_table}
 				WHERE type = %d AND
 				email != '' AND
@@ -147,10 +169,15 @@ class CartBounty_WordPress{
 				if( $messages_sent >= $max_messages_to_send ){
 					break 2;
 				}
-				
+
 				if( $cart->wp_steps_completed == $key ){ //If current step must be complete
-					$first_step = true;
-					$time = $cart->time;
+					$first_step = false;
+					$time = $cart->wp_last_sent;
+					
+					if( $cart->wp_steps_completed == 0 ){ //If reminder about current cart has never been sent - use cart capture time instead of last step automation sent time
+						$time = $cart->time;
+						$first_step = true;
+					}
 
 					if( isset( $automation_step['interval'] ) ){
 						$interval = $automation_step['interval'];
@@ -158,11 +185,11 @@ class CartBounty_WordPress{
 					}else{ //If custom interval is not set, fallback to default interval
 						$interval = $this->get_defaults( 'interval', $step );
 					}
-
+					
 					$step_wait_time = $admin->get_time_intervals( $interval, $first_step ); //Get time interval for the current step
 
-					if( $time < $step_wait_time['wp_step_send_period'] ){ //Check if time has passed for current step
-						$this->send_reminder( $cart ); //Time has passed - must prepare and send out reminder email
+					if ($time < $step_wait_time['wp_step_send_period']){ //Check if time has passed for current step
+						$this->send_reminder( $cart, $key ); //Time has passed - must prepare and send out reminder email
 						$messages_sent++;
 						unset( $carts[$cart_key] ); //Remove array element so the next step loop runs faster
 					}
@@ -177,11 +204,12 @@ class CartBounty_WordPress{
 	 *
 	 * @since    7.0
 	 * @param    object     $cart    		  	  Cart data
+	 * @param    integer    $step_nr              Automation step number
 	 * @param    boolean    $test                 Wheather this is a test email or not
 	 * @param    string     $email                Email that is used for sending a test email
 	 * @param    array    	$preview_data         Automation step input data passed from frontend to allow template preview
 	 */
-	public function send_reminder( $cart, $test = false, $email = false, $preview_data = array() ){
+	public function send_reminder( $cart, $step_nr, $test = false, $email = false, $preview_data = array() ){
 		$admin = new CartBounty_Admin(CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER);
 		$settings = $this->get_settings();
 
@@ -192,9 +220,9 @@ class CartBounty_WordPress{
 			$to = $cart->email;
 		}
 
-		$subject = $this->get_defaults( 'subject', 0 );
+		$subject = $this->get_defaults( 'subject', $step_nr );
 		$automation_steps = get_option('cartbounty_automation_steps');
-		$step = $automation_steps[0];
+		$step = $automation_steps[$step_nr];
 
 		if($test){
 			$step = $preview_data;
@@ -207,7 +235,7 @@ class CartBounty_WordPress{
 			}
 		}
 
-		$message = $this->get_reminder_contents( $cart, $test, $preview_data );
+		$message = $this->get_reminder_contents( $cart, $step_nr, $test, $preview_data );
 		$from_name = ( !empty( $settings['from_name'] ) ) ? $settings['from_name'] : get_option( 'blogname' );
 		$from_email = ( !empty( $settings['from_email'] ) ) ? $settings['from_email'] : get_option( 'admin_email' );
 		$reply_to = $settings['reply_email'];
@@ -225,9 +253,9 @@ class CartBounty_WordPress{
 		
 		if(!$test){ //If this is not a test email
 			$current_time = current_time( 'mysql', false );
-			$template = ( isset($step['template']) ) ? $step['template'] : $this->get_defaults( 'template', 0 );
-			$this->update_cart( $cart ); //Update cart information
-			$this->add_email( $cart->id, $current_time ); //Create a new row in the emails table
+			$template = ( isset($step['template']) ) ? $step['template'] : $this->get_defaults( 'template', $step_nr );
+			$this->update_cart( $cart, $current_time ); //Update cart information
+			$this->add_email( $cart->id, $step_nr, $current_time ); //Create a new row in the emails table
 		}
 
 		restore_previous_locale();
@@ -267,7 +295,7 @@ class CartBounty_WordPress{
 				$email = get_option( 'admin_email' );
 			}
 		}
-		$this->send_reminder( $cart = false, $test = true, $email, $preview_data );
+		$this->send_reminder( $cart = false, $step_nr, $test = true, $email, $preview_data );
 		wp_send_json_success('<span class="license-status license-active fadeOutSlow" dir="'. $direction .'"><i class="license-status-icon"><img src="'. esc_url( plugin_dir_url( __DIR__ ) ) . 'admin/assets/active-icon.svg" /></i>'. esc_html__( 'Email successfully sent', 'woo-save-abandoned-carts' ) .'</span>');
 	}
 
@@ -294,7 +322,7 @@ class CartBounty_WordPress{
 			$preview_data = $this->get_preview_data($_POST);
 		}
 
-		$contents = $this->get_reminder_contents( $cart = false, $test = true, $preview_data );
+		$contents = $this->get_reminder_contents( $cart = false, $step_nr, $test = true, $preview_data );
 		wp_send_json_success( $contents );
 	}
 
@@ -324,12 +352,13 @@ class CartBounty_WordPress{
      * @since    7.0
      * @return   html
      * @param    object     $cart    		  	  Cart data. If false, then we must output
+     * @param    array      $step_nr              Automation step number
      * @param    boolean    $test                 Weather request triggered by Email test or preview function
      * @param    array    	$preview_data         Automation step input data passed from frontend to allow template preview
      */
-	private function get_reminder_contents( $cart, $test = false, $preview_data = array() ){
+	private function get_reminder_contents( $cart, $step_nr, $test = false, $preview_data = array() ){
 		ob_start();
-		echo $this->get_selected_template( $cart, $test, $preview_data );
+		echo $this->get_selected_template( $cart, $step_nr, $test, $preview_data );
 		$content = ob_get_contents();
 		ob_end_clean();
 		return $content;
@@ -341,10 +370,11 @@ class CartBounty_WordPress{
      * @since    7.0
      * @return   html
      * @param    object     $cart    		  	  Cart data. If false, then we must output
+     * @param    array      $step_nr              Automation step number
      * @param    boolean    $test                 Weather request triggered by Email test or preview function
      * @param    array    	$preview_data         Automation step input data passed from frontend to allow template preview
      */
-	private function get_selected_template( $cart, $test = false, $preview_data = array() ){
+	private function get_selected_template( $cart, $step_nr, $test = false, $preview_data = array() ){
 		$public = new CartBounty_Public(CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER);
 		$admin = new CartBounty_Admin(CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER);
 		$automation_steps = get_option('cartbounty_automation_steps');
@@ -362,8 +392,8 @@ class CartBounty_WordPress{
 		$border_color = '#e9e8e8';
 		$recovery_link = wc_get_checkout_url();
 		$unsubscribe_link = '';
-		$heading = $this->get_defaults('heading', 0);
-		$content = $this->get_defaults('content', 0);
+		$heading = $this->get_defaults( 'heading', $step_nr );
+		$content = $this->get_defaults( 'content', $step_nr );
 
 		if(isset($step['main_color'])){
 			if(!empty($step['main_color'])){
@@ -538,19 +568,29 @@ class CartBounty_WordPress{
      *
      * @since    7.0
      * @param    object     $cart   		    Cart data
+     * @param    string     $current_time       Current time
      */
-	public function update_cart( $cart ){
+	public function update_cart( $cart, $current_time ){
 		global $wpdb;
 		$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
 		$active_steps = $this->get_active_steps();
+		$complete = false;
+		$completed_steps = $cart->wp_steps_completed;
+
+		if( $completed_steps >= ( count( $active_steps ) - 1 ) ){ //Checking if this is the last automation step to mark the automation as complete for the current cart
+			$complete = true;
+		}
+
 		$wpdb->query(
 			$wpdb->prepare(
 				"UPDATE {$cart_table}
 				SET wp_steps_completed = %d,
+				wp_last_sent = %s,
 				wp_complete = %s
 				WHERE id = %d",
-				$cart->wp_steps_completed + 1,
-				true,
+				$completed_steps + 1,
+				$current_time,
+				$complete,
 				$cart->id
 			)
 		);
@@ -561,9 +601,10 @@ class CartBounty_WordPress{
      *
      * @since    7.0
      * @param    integer    $cart_id   			Cart ID
+     * @param    integer    $step_nr            Automation step number
      * @param    string     $current_time       Current time
      */
-	public function add_email( $cart_id, $current_time ){
+	public function add_email( $cart_id, $step_nr, $current_time ){
 		global $wpdb;
 		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
 
@@ -576,29 +617,47 @@ class CartBounty_WordPress{
 
 		$data = array(
 			'cart' 				=> $cart_id,
+			'step' 				=> $step_nr,
 			'time' 				=> $current_time,
 		);
 		$format = array(
 			'%d',
+			'%d',
 			'%s',
 		);
 		$wpdb->insert($email_table, $data, $format);
-		$this->increase_sent_emails();
+		$this->increase_message_stats( $step_nr );
 	}
 
 	/**
      * Increase the count of sent emails for a given automation step
      *
      * @since    7.0
+     * @param    integer    $step_nr			Automation step number
      */
-	public function increase_sent_emails(){
-		$sent_emails = get_option('cartbounty_automation_sends');
-		if(isset($sent_emails)){ //If we already have previous sent emails for the current step
-			$sent_emails = $sent_emails + 1;
-		}else{ //If this is the first email that is sent
-			$sent_emails = 1;
+	public function increase_message_stats( $step_nr ){
+		$message_stats = get_option( 'cartbounty_automation_sends' );
+
+		//Temporary block since version 8.9. Will be removed in future versions. Required due to shifting from single reminder step to multiple steps
+		if( !is_array( $message_stats) && !empty( $message_stats ) ){
+			$sents = $message_stats;
+			$message_stats = array();
+			$message_stats[0] = (int)$sents;
 		}
-		update_option('cartbounty_automation_sends', $sent_emails);
+		//End temporary block
+
+		if( !is_array( $message_stats ) ) {
+			$message_stats = array();
+		}
+
+		if( isset( $message_stats[$step_nr] ) ){ //If we already have previous stats for the current step
+			$message_stats[$step_nr] = $message_stats[$step_nr] + 1;
+
+		}else{ //If this is the first time we track this
+			$message_stats[$step_nr] = 1;
+		}
+
+		update_option( 'cartbounty_automation_sends', $message_stats );
 	}
 
 	/**
@@ -638,11 +697,14 @@ class CartBounty_WordPress{
 	public function display_email_history( $cart_id = false ){
 		$emails = $this->get_email_history( $cart_id );
 		$output = '';
-		if($emails){
+
+		if( $emails ){
 			$output .= '<em class="cartbounty-email-history-list">';
-			foreach ($emails as $key => $email){
-				$time = new DateTime($email->time);
-				$output .= '<i class="cartbounty-email-history-item"><i class="cartbounty-automation-number">1</i>' . esc_html( $time->format('M d, Y H:i') ) . '</i>';
+			
+			foreach( $emails as $key => $email ){
+				$step = $email->step + 1; //Adding + 1 as step numbering starts from 0
+				$time = new DateTime( $email->time );
+				$output .= '<i class="cartbounty-email-history-item"><i class="cartbounty-automation-number">'. esc_html( $step ) .'</i>' . esc_html( $time->format( 'M d, Y H:i' ) ) . '</i>';
 			}
 			$output .= '</em>';
 		}
@@ -654,8 +716,9 @@ class CartBounty_WordPress{
 	 *
 	 * @since    7.0
 	 * @return   string
+	 * @param    integer    $step_nr			Automation step number
 	 */
-	public function get_queue() {
+	public function get_queue( $step_nr = false ) {
 		global $wpdb;
 		$admin = new CartBounty_Admin(CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER);
 		$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
@@ -681,7 +744,7 @@ class CartBounty_WordPress{
 				time > %s
 				$consent_query",
 				$admin->get_cart_type('abandoned'),
-				0,
+				$step_nr,
 				$time['cart_abandoned'],
 				$time['maximum_sync_period']
 			)
@@ -700,13 +763,34 @@ class CartBounty_WordPress{
      * Return sent reminder email count
      *
      * @since    7.0
+     * @return   integer or array
+	 * @param    string     $action				Action type that needs to be returned
+	 * @param    integer    $step_nr			Automation step number
+	 * @param    boolean    $single				Whether a value for a specified step must be returned
      */
-	public function get_stats(){
+	public function get_stats( $step_nr = false, $single = false ){
 		$count = 0;
-		$sent_emails = get_option( 'cartbounty_automation_sends' );
-		
-		if( $sent_emails > 0 ){
-			$count = $sent_emails;
+		$message_stats = get_option( 'cartbounty_automation_sends' );
+
+		//Temporary block since version 8.9. Will be removed in future versions. Required due to shifting from single reminder step to multiple steps
+		if( !is_array( $message_stats) && !empty( $message_stats ) ){
+			$sents = $message_stats;
+			$message_stats = array();
+			$message_stats[0] = (int)$sents;
+		}
+		//End temporary block
+
+		if( $single ){ //If stats for a specific step number is requested
+			if( isset( $message_stats[$step_nr] ) ){
+				$count = $message_stats[$step_nr];
+			}
+
+		}else{ //Counting message stats across all automation steps
+			if( is_array( $message_stats ) ){
+				foreach ( $message_stats as $key => $stat ) {
+					$count = $count + $stat;
+				}
+			}
 		}
 
 		return $count;
@@ -764,10 +848,22 @@ class CartBounty_WordPress{
 
 				$defaults = array(
 					'name'			=> esc_html__( 'Third email', 'woo-save-abandoned-carts' ),
+					'subject'		=> esc_attr__( 'Ready to finish your order?', 'woo-save-abandoned-carts' ),
+					'heading'		=> esc_attr__( 'Secure your items before they are released', 'woo-save-abandoned-carts' ),
+					'content'		=> esc_attr__( 'We are holding your cart for a little longer. Popular items can sell out quickly — finish your order now to secure them. Need help? Just reply and we will assist.', 'woo-save-abandoned-carts' ),
+					'interval'		=> 172800000
+				);
+			
+				break;
+
+			case 3:
+
+				$defaults = array(
+					'name'			=> esc_html__( 'Fourth email', 'woo-save-abandoned-carts' ),
 					'subject'		=> esc_attr__( 'Your cart is about to expire! 🛒', 'woo-save-abandoned-carts' ),
 					'heading'		=> esc_attr__( 'Last chance to save your cart! 🛒', 'woo-save-abandoned-carts' ),
 					'content'		=> esc_attr__( 'Goodbyes are never easy, but this is our last reminder. Products in your shopping cart will expire unless you take them with you.', 'woo-save-abandoned-carts' ),
-					'interval'		=> 172800000
+					'interval'		=> 345600000
 				);
 			
 				break;
@@ -819,8 +915,12 @@ class CartBounty_WordPress{
 		}
 		$admin = new CartBounty_Admin(CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER);
 		$steps = $_POST['cartbounty_automation_steps'];
+		$disabled_steps = array();
 
-		foreach ($steps as $key => $step) {
+		foreach ($steps as $key => $step){
+			if( !isset( $step['enabled'] ) ){
+				$disabled_steps[] = $key; //Add current step to disabled steps array
+			}
 
 			//Sanitizing Subject
 			if(isset($step['subject'])){
@@ -833,6 +933,16 @@ class CartBounty_WordPress{
 			//Sanitizing Content
 			if(isset($step['content'])){
 				$steps[$key]['content'] = $admin->sanitize_field($step['content']);
+			}
+		}
+
+		foreach( $disabled_steps as $key => $disabled_step ){
+			if( $disabled_step == 0 ){ //If first step is disabled, deactivate 2nd and 3rd steps
+				unset( $steps[1]['enabled'] );
+				unset( $steps[2]['enabled'] );
+
+			}elseif( $disabled_step == 1 ){ //If second step is disabled, deactivate 3rd step
+				unset( $steps[2]['enabled'] );
 			}
 		}
 
@@ -902,10 +1012,44 @@ class CartBounty_WordPress{
 						'heading' => '',
 						'content' => ''
 					),
-					1,
-					1
+					array(
+						'subject' => '',
+						'heading' => '',
+						'content' => ''
+					),
+					array(
+						'subject' => '',
+						'heading' => '',
+						'content' => ''
+					),
 				)
 			);
+
+		}elseif( is_array( $automation_steps ) && count( $automation_steps ) != CARTBOUNTY_MAX_STEPS ){ //If available steps are not equal to maximum available step count. Temporary block since version 8.9. Will be removed in future versions
+			$this->upgrade_available_steps( $option );
 		}
+	}
+
+	/**
+     * Method increases available steps without owerwriting current recovery step settings
+     * Temporary block since version 8.9. Will be removed in future versions. 
+     *
+     * @since    8.9
+	 * @param    string		$option   		    Option name
+     */
+	public function upgrade_available_steps( $option ){
+		$steps = get_option( $option );
+		$steps[] = array(
+			'subject' 				=> '',
+			'heading' 				=> '',
+			'content' 				=> '',
+		);
+		$steps[] = array(
+			'subject' 				=> '',
+			'heading' 				=> '',
+			'content' 				=> '',
+		);
+
+		update_option( $option, $steps );
 	}
 }

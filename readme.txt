@@ -5,7 +5,7 @@ Tags: woocommerce, abandoned carts, cart abandonment, exit popup, activecampaign
 Requires at least: 4.6
 Tested up to: 6.8
 Requires PHP: 7.0
-Stable tag: 8.8
+Stable tag: 8.9
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -131,7 +131,7 @@ Learn more about [Exit Intent Technology](https://www.cartbounty.com/exit-intent
 
 The public-facing components of CartBounty, such as the Exit Intent popup and WordPress recovery emails, can be easily customized using the plugin's settings. However, if you need more advanced customization options, you can use the pre-built CartBounty templates or take advantage of the available actions and filters.
 
-You will find all available template files inside **/plugins/woo-save-abandoned-carts-pro/templates** folder. When you open these files, you will notice they all contain hooks that allow you to add, edit or remove content without the need to edit template files themselves. This method protects against plugin upgrade issues, as the template files can be left completely untouched.
+You will find all available template files inside **/plugins/woo-save-abandoned-carts/templates** folder. When you open these files, you will notice they all contain hooks that allow you to add, edit or remove content without the need to edit template files themselves. This method protects against plugin upgrade issues, as the template files can be left completely untouched.
 
 Please copy the template file you require to your active theme to keep your customization intact after plugin updates. You can copy them to either one of these locations:
 
@@ -333,12 +333,7 @@ In addition, the Pro version allows you to select if guests from specific countr
 
 == Changelog ==
 
-= 8.8 =
-* Improved Dashboard (abandoned cart report) loading performance
-* Improved detection of abandoned carts if WooCommerce session ID changes
-* Improved how cart contents are stored to increase efficiency
-* Improved Exit Intent popup closing UX
-* Restricted abandoned cart deletion to administrators only
-* Transitioned from relying on WordPress transients to a custom transient management system
+= 8.9 =
+* Added two additional reminder steps for WordPress abandoned cart recovery
 
 [See changelog for all versions](https://raw.githubusercontent.com/Streamlinelv/woo-save-abandoned-carts/master/changelog.txt).

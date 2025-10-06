@@ -355,7 +355,7 @@ class CartBounty_Admin{
 	function display_page(){
 		global $pagenow;
 		
-		if ( !$this->user_is_shop_manager() ){
+		if( !$this->user_is_shop_manager() ){
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'woo-save-abandoned-carts' ) );
 		}?>
 
@@ -1122,11 +1122,11 @@ class CartBounty_Admin{
      * @param 	 string   $zero_value    	Content for zero value
      * @param    string   $option			Name of the option field used for storing time in database
      */
-    function prepare_time_intervals( $miliseconds = array(), $zero_value = '', $option = '' ){
-    	$intervals = array();
-    	$alternative_options = array( 'cartbounty_main_settings[notification_frequency]' );
+	function prepare_time_intervals( $miliseconds = array(), $zero_value = '', $option = '' ){
+		$intervals = array();
+		$alternative_options = array( 'cartbounty_main_settings[notification_frequency]' );
 
-    	if( is_array( $miliseconds ) ){
+		if( is_array( $miliseconds ) ){
 
 			foreach( $miliseconds as $milisecond ){
 				
@@ -1411,308 +1411,309 @@ class CartBounty_Admin{
 						<div class="cartbounty-titles-column cartbounty-full-width cartbounty-col-sm-12 cartbounty-col-md-12 cartbounty-col-lg-12">
 							<h4><?php esc_html_e('Automation process', 'woo-save-abandoned-carts'); ?></h4>
 							<p class="cartbounty-titles-column-description">
-								<?php esc_html_e('Configure your abandoned cart reminder emails, how they look, when to send them, include coupons, etc. You can choose to enable just one or all of them creating a 3-step automation process. The countdown of the next step starts right after the previous one is finished.', 'woo-save-abandoned-carts'); ?>
+								<?php esc_html_e('Configure your abandoned cart reminder emails, how they look, when to send them, include coupons, etc. You can choose to enable just one or all of them creating a 4-step automation process. The countdown of the next step starts right after the previous one is finished.', 'woo-save-abandoned-carts'); ?>
 							</p>
 						</div>
 						<div class="cartbounty-settings-column cartbounty-full-width cartbounty-col-sm-12 cartbounty-col-md-12 cartbounty-col-lg-12">
 							<div class="cartbounty-settings-group">
 								<div class="cartbounty-stairway">
 									<?php if( !empty( $automation_steps ) ){
-										$step = $automation_steps[0];
-										$step = (object)$step;
-										$enabled = ( isset($step->enabled) ) ? $step->enabled : false;
-										$subject = ( isset($step->subject) ) ? $step->subject : '';
-										$heading = ( isset($step->heading) ) ? $step->heading : '';
-										$content = ( isset($step->content) ) ? $step->content : '';
-										$main_color = ( isset($step->main_color) ) ? $step->main_color : false;
-										$button_color = ( isset($step->button_color) ) ? $step->button_color : false;
-										$text_color = ( isset($step->text_color) ) ? $step->text_color : false;
-										$background_color = ( isset($step->background_color) ) ? $step->background_color : false;
-										$time_interval_name = $this->get_interval_data( 'cartbounty_automation_steps', 0, $just_selected_value = true );
-										$preview_email_nonce = wp_create_nonce( 'preview_email' );
-										$test_email_nonce = wp_create_nonce( 'test_email' );
-										$automation_status = $wordpress->display_automation_status( $enabled ); ?>
+										foreach( $automation_steps as $key => $step ){
+											$step = (object)$step;
+											$enabled = ( isset($step->enabled) ) ? $step->enabled : false;
+											$subject = ( isset($step->subject) ) ? $step->subject : '';
+											$heading = ( isset($step->heading) ) ? $step->heading : '';
+											$content = ( isset($step->content) ) ? $step->content : '';
+											$main_color = ( isset($step->main_color) ) ? $step->main_color : false;
+											$button_color = ( isset($step->button_color) ) ? $step->button_color : false;
+											$text_color = ( isset($step->text_color) ) ? $step->text_color : false;
+											$background_color = ( isset($step->background_color) ) ? $step->background_color : false;
+											$time_interval_name = $this->get_interval_data( 'cartbounty_automation_steps', $key, $just_selected_value = true );
+											$preview_email_nonce = wp_create_nonce( 'preview_email' );
+											$test_email_nonce = wp_create_nonce( 'test_email' );
+											$automation_status = $wordpress->display_automation_status( $enabled ); ?>
 
-										<div class="cartbounty-step">
-											<div class="cartbounty-step-opener">
-												<div class="cartbounty-row">
-													<div class="cartbounty-titles-column cartbounty-col-xs-12 cartbounty-col-sm-4 cartbounty-col-lg-3">
-														<div class="cartbounty-automation-number">1</div>
-														<div class="cartbounty-automation-name">
-															<h3><?php echo esc_html( $wordpress->get_defaults( 'name', 0 ) ); ?></h3>
-															<p><?php echo sprintf(
-																/* translators: %s - Time, e.g. 10 minutes */
-																 esc_html__('Sends after %s', 'woo-save-abandoned-carts'), esc_html( $time_interval_name ) );?></p>
-															<div class="cartbounty-automation-status">
-																<?php echo $automation_status; ?>
-															</div>
-														</div>
-														<div class="cartbounty-step-trigger"></div>
-													</div>
-													<div class="cartbounty-settings-column cartbounty-col-xs-12 cartbounty-col-sm-8 cartbounty-col-lg-9">
-														<div class="cartbounty-row">
-															<div class="cartbounty-stats-container cartbounty-col-sm-12 cartbounty-col-lg-9">
-																<div class="cartbounty-stats cartbounty-percentage-switcher">
-																	<div class="cartbounty-stats-percentage">
-																		<i><?php esc_html_e( 'Queue', 'woo-save-abandoned-carts' ); ?></i>
-																		<p><?php echo esc_html( $wordpress->get_queue() ); ?></p>
-																	</div>
-																	<div class="cartbounty-stats-count">
-																		<i><?php esc_html_e( 'Sends', 'woo-save-abandoned-carts' ); ?></i>
-																		<p><?php echo esc_html( $wordpress->get_stats() ); ?></p>
-																	</div>
-																</div>
-																<div class="cartbounty-stats">
-																	<div class="cartbounty-stats-percentage">
-																		<i><?php esc_html_e( 'Open rate', 'woo-save-abandoned-carts' ); ?></i>
-																		<p>-</p>
-																	</div>
-																	<div class="cartbounty-stats-count">
-																		<a href="<?php echo esc_url( $this->get_trackable_link( CARTBOUNTY_LICENSE_SERVER_URL, 'wp_enable_email_stats' ) ); ?>" class="button cartbounty-button" target="_blank"><?php esc_html_e('Upgrade to see stats', 'woo-save-abandoned-carts'); ?></a>
-																		<i><?php esc_html_e( 'Opens', 'woo-save-abandoned-carts' ); ?></i>
-																		<p>-</p>
-																	</div>
-																</div>
-																<div class="cartbounty-stats">
-																	<div class="cartbounty-stats-percentage">
-																		<i><?php esc_html_e( 'Click rate', 'woo-save-abandoned-carts' ); ?></i>
-																		<p>-</p>
-																	</div>
-																	<div class="cartbounty-stats-count">
-																		<i><?php esc_html_e( 'Clicks', 'woo-save-abandoned-carts' ); ?></i>
-																		<p>-</p>
-																	</div>
-																</div>
-																<div class="cartbounty-stats">
-																	<div class="cartbounty-stats-percentage">
-																		<i><?php esc_html_e( 'Recovery rate', 'woo-save-abandoned-carts' ); ?></i>
-																		<p>-</p>
-																	</div>
-																	<div class="cartbounty-stats-count">
-																		<i><?php esc_html_e( 'Recovered', 'woo-save-abandoned-carts' ); ?></i>
-																		<p>-</p>
-																	</div>
-																</div>
-																<div class="cartbounty-stats">
-																	<div class="cartbounty-stats-percentage">
-																		<i><?php esc_html_e( 'Unsubscribe rate', 'woo-save-abandoned-carts' ); ?></i>
-																		<p>-</p>
-																	</div>
-																	<div class="cartbounty-stats-count">
-																		<i><?php esc_html_e( 'Unsubscribes', 'woo-save-abandoned-carts' ); ?></i>
-																		<p>-</p>
-																	</div>
-																</div>
-															</div>
-															<div class="cartbounty-trigger-container cartbounty-col-sm-12 cartbounty-col-lg-3">
+											<div class="cartbounty-step<?php esc_attr( $wordpress->check_if_accessible( $key ) ); ?>" data-automation-step="<?php echo esc_attr( $key ); ?>">
+												<div class="cartbounty-step-opener">
+													<div class="cartbounty-row">
+														<div class="cartbounty-titles-column cartbounty-col-xs-12 cartbounty-col-sm-4 cartbounty-col-lg-3">
+															<div class="cartbounty-automation-number"><?php echo esc_html( $key ) + 1; ?></div>
+															<div class="cartbounty-automation-name">
+																<h3><?php echo esc_html( $wordpress->get_defaults( 'name', $key ) ); ?></h3>
+																<p><?php echo sprintf(
+																	/* translators: %s - Time, e.g. 10 minutes */
+																	 esc_html__('Sends after %s', 'woo-save-abandoned-carts'), esc_html( $time_interval_name ) );?></p>
 																<div class="cartbounty-automation-status">
 																	<?php echo $automation_status; ?>
 																</div>
-																<div class="cartbounty-step-trigger"></div>
+															</div>
+															<div class="cartbounty-step-trigger"></div>
+														</div>
+														<div class="cartbounty-settings-column cartbounty-col-xs-12 cartbounty-col-sm-8 cartbounty-col-lg-9">
+															<div class="cartbounty-row">
+																<div class="cartbounty-stats-container cartbounty-col-sm-12 cartbounty-col-lg-9">
+																	<div class="cartbounty-stats cartbounty-percentage-switcher">
+																		<div class="cartbounty-stats-percentage">
+																			<i><?php esc_html_e( 'Queue', 'woo-save-abandoned-carts' ); ?></i>
+																			<p><?php echo esc_html( $wordpress->get_queue( $key ) ); ?></p>
+																		</div>
+																		<div class="cartbounty-stats-count">
+																			<i><?php esc_html_e( 'Sends', 'woo-save-abandoned-carts' ); ?></i>
+																			<p><?php echo esc_html( $wordpress->get_stats( $key , $ingle = true ) ); ?></p>
+																		</div>
+																	</div>
+																	<div class="cartbounty-stats">
+																		<div class="cartbounty-stats-percentage">
+																			<i><?php esc_html_e( 'Open rate', 'woo-save-abandoned-carts' ); ?></i>
+																			<p>-</p>
+																		</div>
+																		<div class="cartbounty-stats-count">
+																			<a href="<?php echo esc_url( $this->get_trackable_link( CARTBOUNTY_LICENSE_SERVER_URL, 'wp_enable_email_stats' ) ); ?>" class="button cartbounty-button" target="_blank"><?php esc_html_e('Upgrade to see stats', 'woo-save-abandoned-carts'); ?></a>
+																			<i><?php esc_html_e( 'Opens', 'woo-save-abandoned-carts' ); ?></i>
+																			<p>-</p>
+																		</div>
+																	</div>
+																	<div class="cartbounty-stats">
+																		<div class="cartbounty-stats-percentage">
+																			<i><?php esc_html_e( 'Click rate', 'woo-save-abandoned-carts' ); ?></i>
+																			<p>-</p>
+																		</div>
+																		<div class="cartbounty-stats-count">
+																			<i><?php esc_html_e( 'Clicks', 'woo-save-abandoned-carts' ); ?></i>
+																			<p>-</p>
+																		</div>
+																	</div>
+																	<div class="cartbounty-stats">
+																		<div class="cartbounty-stats-percentage">
+																			<i><?php esc_html_e( 'Recovery rate', 'woo-save-abandoned-carts' ); ?></i>
+																			<p>-</p>
+																		</div>
+																		<div class="cartbounty-stats-count">
+																			<i><?php esc_html_e( 'Recovered', 'woo-save-abandoned-carts' ); ?></i>
+																			<p>-</p>
+																		</div>
+																	</div>
+																	<div class="cartbounty-stats">
+																		<div class="cartbounty-stats-percentage">
+																			<i><?php esc_html_e( 'Unsubscribe rate', 'woo-save-abandoned-carts' ); ?></i>
+																			<p>-</p>
+																		</div>
+																		<div class="cartbounty-stats-count">
+																			<i><?php esc_html_e( 'Unsubscribes', 'woo-save-abandoned-carts' ); ?></i>
+																			<p>-</p>
+																		</div>
+																	</div>
+																</div>
+																<div class="cartbounty-trigger-container cartbounty-col-sm-12 cartbounty-col-lg-3">
+																	<div class="cartbounty-automation-status">
+																		<?php echo $automation_status; ?>
+																	</div>
+																	<div class="cartbounty-step-trigger"></div>
+																</div>
 															</div>
 														</div>
 													</div>
 												</div>
-											</div>
-											<div class="cartbounty-step-contents">
-												<div class="cartbounty-row">
-													<div class="cartbounty-titles-column cartbounty-col-sm-12 cartbounty-col-md-4 cartbounty-col-lg-3">
-														<h4><?php esc_html_e('General', 'woo-save-abandoned-carts'); ?></h4>
-														<p class="cartbounty-titles-column-description">
-															<?php esc_html_e('Enable email sending to start this automated abandoned cart recovery step.', 'woo-save-abandoned-carts');
-																echo ' ' . sprintf(
-																/* translators: %s - Link tags */
-																 esc_html__('Learn how to use %spersonalization tags%s.', 'woo-save-abandoned-carts'), '<a href="'. esc_url( $this->get_trackable_link( CARTBOUNTY_LICENSE_SERVER_URL . 'personalization-tags', 'wp_personalization' ) ) .'" target="_blank">', '</a>');?>
-														</p>
-													</div>
-													<div class="cartbounty-settings-column cartbounty-col-sm-12 cartbounty-col-md-8 cartbounty-col-lg-9<?php if($enabled){ echo ' cartbounty-checked-parent'; }?>">
-														<div class="cartbounty-settings-group cartbounty-toggle">
-															<label for="cartbounty-automation-status" class="cartbounty-switch cartbounty-control-visibility cartbounty-step-controller">
-																<input id="cartbounty-automation-status" class="cartbounty-checkbox" type="checkbox" name="cartbounty_automation_steps[0][enabled]" value="1" <?php echo $this->disable_field(); ?> <?php echo checked( 1, $enabled, false ); ?> autocomplete="off" />
-																<span class="cartbounty-slider round"></span>
-															</label>
-															<label for="cartbounty-automation-status" class="cartbounty-control-visibility cartbounty-step-controller"><?php esc_html_e('Enable email', 'woo-save-abandoned-carts'); ?></label>
-														</div>
-														<div class="cartbounty-settings-group cartbounty-hidden">
-															<label for="cartbounty-automation-interval"><?php esc_html_e('Send email after', 'woo-save-abandoned-carts'); ?></label>
-															<?php $this->display_time_intervals( 'cartbounty_automation_steps', 0 ); ?>
-															<p class='cartbounty-additional-information'>
-																<?php echo sprintf(
-																/* translators: %s - Link tags */
-																 esc_html__( 'Please %ssee this%s to learn how reminder sending works and when it will be delivered.', 'woo-save-abandoned-carts' ), '<a href="'. esc_url( $this->get_trackable_link( CARTBOUNTY_LICENSE_SERVER_URL . 'abandoned-carts', 'wp_is_it_abandoned', '#when-is-the-cart-abandoned' ) ) .'" target="_blank">', '</a>'); ?>
-															</p>
-														</div>
-														<div class="cartbounty-settings-group">
-															<label for="cartbounty-automation-subject"><?php esc_html_e('Email subject', 'woo-save-abandoned-carts'); ?></label>
-															<div class="cartbounty-content-creation cartbounty-flex">
-																<input id="cartbounty-automation-subject" class="cartbounty-text" type="text" name="cartbounty_automation_steps[0][subject]" value="<?php echo $this->sanitize_field($subject); ?>" placeholder="<?php echo esc_attr( $wordpress->get_defaults( 'subject', 0 ) ); ?>" /><?php $this->add_emojis(); ?><?php $this->add_tags(); ?>
-															</div>
-															<p class='cartbounty-additional-information'>
-																<?php esc_html_e('Subject line has a huge impact on email open rate.', 'woo-save-abandoned-carts'); ?>
-															</p>
-														</div>
-														<div class="cartbounty-settings-group">
-															<label for="cartbounty-automation-heading"><?php esc_html_e('Main title', 'woo-save-abandoned-carts'); ?></label>
-															<div class="cartbounty-content-creation cartbounty-flex">
-																<input id="cartbounty-automation-heading" class="cartbounty-text" type="text" name="cartbounty_automation_steps[0][heading]" value="<?php echo $this->sanitize_field($heading); ?>" placeholder="<?php echo esc_attr( $wordpress->get_defaults( 'heading', 0 ) ); ?>" /><?php $this->add_emojis(); ?><?php $this->add_tags(); ?>
-															</div>
-														</div>
-														<div class="cartbounty-settings-group">
-															<label for="cartbounty-automation-content"><?php esc_html_e('Content', 'woo-save-abandoned-carts'); ?></label>
-															<div class="cartbounty-content-creation cartbounty-flex">
-																<textarea id="cartbounty-automation-content" class="cartbounty-text" name="cartbounty_automation_steps[0][content]" placeholder="<?php echo esc_attr( $wordpress->get_defaults( 'content', 0 ) ); ?>" rows="4"><?php echo $this->sanitize_field($content); ?></textarea><?php $this->add_emojis(); ?><?php $this->add_tags(); ?>
-															</div>
-														</div>
-													</div>
-												</div>
-												<div class="cartbounty-row">
-													<div class="cartbounty-titles-column cartbounty-col-sm-12 cartbounty-col-md-4 cartbounty-col-lg-3">
-														<h4><?php esc_html_e('Appearance', 'woo-save-abandoned-carts'); ?></h4>
-														<p class="cartbounty-titles-column-description">
-															<?php esc_html_e( 'Choose a template that will be used to display the abandoned cart reminder email.', 'woo-save-abandoned-carts' ); ?> <?php echo sprintf(
+												<div class="cartbounty-step-contents">
+													<div class="cartbounty-row">
+														<div class="cartbounty-titles-column cartbounty-col-sm-12 cartbounty-col-md-4 cartbounty-col-lg-3">
+															<h4><?php esc_html_e('General', 'woo-save-abandoned-carts'); ?></h4>
+															<p class="cartbounty-titles-column-description">
+																<?php esc_html_e('Enable email sending to start this automated abandoned cart recovery step.', 'woo-save-abandoned-carts');
+																	echo ' ' . sprintf(
 																	/* translators: %s - Link tags */
-																	 esc_html__( 'Look here to see advanced %stemplate customization%s options.', 'woo-save-abandoned-carts'), '<a href="'. esc_url( $this->get_trackable_link( CARTBOUNTY_LICENSE_SERVER_URL . 'templates', 'wp_template_customization' ) ) .'" target="_blank">', '</a>');?>
-														</p>
-													</div>
-													<div class="cartbounty-settings-column cartbounty-col-sm-12 cartbounty-col-md-8 cartbounty-col-lg-9">
-														<div class="cartbounty-settings-group">
-															<h4><?php esc_html_e('Template', 'woo-save-abandoned-carts'); ?></h4>
-															<div class="cartbounty-flex-container">
-																<div id="cartbounty-automation-template-light" class="cartbounty-type cartbounty-email-template cartbounty-email-template-light cartbounty-radio-active">
-																	<label class="cartbounty-image" for="cartbounty-template-light">
-																		<em>
-																			<i>
-																				<span class="cartbounty-template-top-image"></span>
-																				<img src="<?php echo esc_url( plugins_url( 'assets/template-light.svg', __FILE__ ) ) ; ?>" title="<?php esc_attr_e('Light', 'woo-save-abandoned-carts'); ?>" alt="<?php esc_attr_e('Light', 'woo-save-abandoned-carts'); ?>"/>
-																			</i>
-																		</em>
-																		<input id="cartbounty-template-light" class="cartbounty-radiobutton" type="radio" name="cartbounty_automation_steps[0][template]" value="1" <?php echo $this->disable_field(); ?> checked="" autocomplete="off" />
-																		<?php esc_html_e('Light', 'woo-save-abandoned-carts'); ?>
-																	</label>
+																	 esc_html__('Learn how to use %spersonalization tags%s.', 'woo-save-abandoned-carts'), '<a href="'. esc_url( $this->get_trackable_link( CARTBOUNTY_LICENSE_SERVER_URL . 'personalization-tags', 'wp_personalization' ) ) .'" target="_blank">', '</a>');?>
+															</p>
+														</div>
+														<div class="cartbounty-settings-column cartbounty-col-sm-12 cartbounty-col-md-8 cartbounty-col-lg-9<?php if($enabled){ echo ' cartbounty-checked-parent'; }?>">
+															<div class="cartbounty-settings-group cartbounty-toggle">
+																<label for="cartbounty-automation-status-<?php echo esc_attr( $key ); ?>" class="cartbounty-switch cartbounty-control-visibility cartbounty-step-controller">
+																	<input id="cartbounty-automation-status-<?php echo esc_attr( $key ); ?>" class="cartbounty-checkbox" type="checkbox" name="cartbounty_automation_steps[<?php echo esc_attr( $key ); ?>][enabled]" value="1" <?php echo $this->disable_field(); ?> <?php echo checked( 1, $enabled, false ); ?> autocomplete="off" />
+																	<span class="cartbounty-slider round"></span>
+																</label>
+																<label for="cartbounty-automation-status-<?php echo esc_attr( $key ); ?>" class="cartbounty-control-visibility cartbounty-step-controller"><?php esc_html_e('Enable email', 'woo-save-abandoned-carts'); ?></label>
+															</div>
+															<div class="cartbounty-settings-group cartbounty-hidden">
+																<label for="cartbounty-automation-interval"><?php esc_html_e('Send email after', 'woo-save-abandoned-carts'); ?></label>
+																<?php $this->display_time_intervals( 'cartbounty_automation_steps', $key ); ?>
+																<p class='cartbounty-additional-information'>
+																	<?php echo sprintf(
+																	/* translators: %s - Link tags */
+																	 esc_html__( 'Please %ssee this%s to learn how reminder sending works and when it will be delivered.', 'woo-save-abandoned-carts' ), '<a href="'. esc_url( $this->get_trackable_link( CARTBOUNTY_LICENSE_SERVER_URL . 'abandoned-carts', 'wp_is_it_abandoned', '#when-is-the-cart-abandoned' ) ) .'" target="_blank">', '</a>'); ?>
+																</p>
+															</div>
+															<div class="cartbounty-settings-group">
+																<label for="cartbounty-automation-subject-<?php echo esc_attr( $key ); ?>"><?php esc_html_e('Email subject', 'woo-save-abandoned-carts'); ?></label>
+																<div class="cartbounty-content-creation cartbounty-flex">
+																	<input id="cartbounty-automation-subject-<?php echo esc_attr( $key ); ?>" class="cartbounty-text" type="text" name="cartbounty_automation_steps[<?php echo esc_attr( $key ); ?>][subject]" value="<?php echo $this->sanitize_field($subject); ?>" placeholder="<?php echo esc_attr( $wordpress->get_defaults( 'subject', $key ) ); ?>" /><?php $this->add_emojis(); ?><?php $this->add_tags(); ?>
 																</div>
-																<div id="cartbounty-automation-template-rows" class="cartbounty-type cartbounty-email-template cartbounty-email-template-rows">
-																	<label class="cartbounty-image" for="cartbounty-template-rows">
-																		<em>
-																			<i>
-																				<span class="cartbounty-template-top-image"></span>
-																				<img src="<?php echo esc_url( plugins_url( 'assets/template-rows.svg', __FILE__ ) ) ; ?>" title="<?php esc_attr_e('With cart contents', 'woo-save-abandoned-carts'); ?>" alt="<?php esc_attr_e('With cart contents', 'woo-save-abandoned-carts'); ?>"/>
-																			</i>
-																			<span class="cartbounty-wordpress-additional-style"><?php esc_html_e('Upgrade to enable this style', 'woo-save-abandoned-carts'); ?>
-																				<a href="<?php echo esc_url( $this->get_trackable_link( CARTBOUNTY_LICENSE_SERVER_URL, 'wp_style_rows' ) ); ?>" class="button cartbounty-button" target="_blank"><?php esc_html_e('Get Pro', 'woo-save-abandoned-carts'); ?></a>
-																			</span>
-																		</em>
-																		<input id="cartbounty-template-rows" class="cartbounty-radiobutton" type="radio" disabled autocomplete="off" />
-																		<?php esc_html_e('With cart contents', 'woo-save-abandoned-carts'); ?>
-																	</label>
+																<p class='cartbounty-additional-information'>
+																	<?php esc_html_e('Subject line has a huge impact on email open rate.', 'woo-save-abandoned-carts'); ?>
+																</p>
+															</div>
+															<div class="cartbounty-settings-group">
+																<label for="cartbounty-automation-heading-<?php echo esc_attr( $key ); ?>"><?php esc_html_e('Main title', 'woo-save-abandoned-carts'); ?></label>
+																<div class="cartbounty-content-creation cartbounty-flex">
+																	<input id="cartbounty-automation-heading-<?php echo esc_attr( $key ); ?>" class="cartbounty-text" type="text" name="cartbounty_automation_steps[<?php echo esc_attr( $key ); ?>][heading]" value="<?php echo $this->sanitize_field($heading); ?>" placeholder="<?php echo esc_attr( $wordpress->get_defaults( 'heading', $key ) ); ?>" /><?php $this->add_emojis(); ?><?php $this->add_tags(); ?>
 																</div>
-																<div id="cartbounty-automation-template-columns" class="cartbounty-type cartbounty-email-template cartbounty-email-template-columns">
-																	<label class="cartbounty-image" for="cartbounty-template-columns">
-																		<em>
-																			<i>
-																				<span class="cartbounty-template-top-image"></span>
-																				<img src="<?php echo esc_url( plugins_url( 'assets/template-columns.svg', __FILE__ ) ) ; ?>" title="<?php esc_attr_e('With cart contents in columns', 'woo-save-abandoned-carts'); ?>" alt="<?php esc_attr_e('With cart contents in columns', 'woo-save-abandoned-carts'); ?>"/>
-																			</i>
-																			<span class="cartbounty-wordpress-additional-style"><?php esc_html_e('Upgrade to enable this style', 'woo-save-abandoned-carts'); ?>
-																				<a href="<?php echo esc_url( $this->get_trackable_link( CARTBOUNTY_LICENSE_SERVER_URL, 'wp_style_columns' ) ); ?>" class="button cartbounty-button" target="_blank"><?php esc_html_e('Get Pro', 'woo-save-abandoned-carts'); ?></a>
-																			</span>
-																		</em>
-																		<input id="cartbounty-template-columns" class="cartbounty-radiobutton" type="radio" disabled autocomplete="off" />
-																		<?php esc_html_e('With cart contents in columns', 'woo-save-abandoned-carts'); ?>
-																	</label>
+															</div>
+															<div class="cartbounty-settings-group">
+																<label for="cartbounty-automation-content-<?php echo esc_attr( $key ); ?>"><?php esc_html_e('Content', 'woo-save-abandoned-carts'); ?></label>
+																<div class="cartbounty-content-creation cartbounty-flex">
+																	<textarea id="cartbounty-automation-content-<?php echo esc_attr( $key ); ?>" class="cartbounty-text" name="cartbounty_automation_steps[<?php echo esc_attr( $key ); ?>][content]" placeholder="<?php echo esc_attr( $wordpress->get_defaults( 'content', $key ) ); ?>" rows="4"><?php echo $this->sanitize_field($content); ?></textarea><?php $this->add_emojis(); ?><?php $this->add_tags(); ?>
 																</div>
 															</div>
 														</div>
-														<div class="cartbounty-settings-group">
-															<h4><?php esc_html_e('Colors', 'woo-save-abandoned-carts'); ?></h4>
-															<p class='cartbounty-additional-information'>
-																<?php esc_html_e('Look at the default email colors and adjust them to fit your design requirements.', 'woo-save-abandoned-carts'); ?>
-															</p>
-															<div class="cartbounty-colors">
-																<label for="cartbounty-template-main-color"><?php esc_html_e('Main:', 'woo-save-abandoned-carts'); ?></label>
-																<input id="cartbounty-template-main-color" type="text" name="cartbounty_automation_steps[0][main_color]" class="cartbounty-color-picker cartbounty-text" value="<?php echo esc_attr( $main_color ); ?>" <?php echo $this->disable_field(); ?> autocomplete="off" />
-															</div>
-															<div class="cartbounty-colors">
-																<label for="cartbounty-template-inverse-color"><?php esc_html_e('Button:', 'woo-save-abandoned-carts'); ?></label>
-																<input id="cartbounty-template-button-color" type="text" name="cartbounty_automation_steps[0][button_color]" class="cartbounty-color-picker cartbounty-text" value="<?php echo esc_attr( $button_color ); ?>" <?php echo $this->disable_field(); ?> autocomplete="off" />
-															</div>
-															<div class="cartbounty-colors">
-																<label for="cartbounty-template-text-color"><?php esc_html_e('Text:', 'woo-save-abandoned-carts'); ?></label>
-																<input id="cartbounty-template-text-color" type="text" name="cartbounty_automation_steps[0][text_color]" class="cartbounty-color-picker cartbounty-text" value="<?php echo esc_attr( $text_color ); ?>" <?php echo $this->disable_field(); ?> autocomplete="off" />
-															</div>
-															<div class="cartbounty-colors">
-																<label for="cartbounty-template-background-color"><?php esc_html_e('Backdrop:', 'woo-save-abandoned-carts'); ?></label>
-																<input id="cartbounty-template-background-color" type="text" name="cartbounty_automation_steps[0][background_color]" class="cartbounty-color-picker cartbounty-text" value="<?php echo esc_attr( $background_color ); ?>" <?php echo $this->disable_field(); ?> autocomplete="off" />
-															</div>
-														</div>
-														<div class="cartbounty-settings-group cartbounty-toggle">
-															<label for="cartbounty-automation-include-image" class="cartbounty-switch cartbounty-unavailable">
-																<input id="cartbounty-automation-include-image" class="cartbounty-checkbox" type="checkbox" disabled autocomplete="off" />
-																<span class="cartbounty-slider round"></span>
-															</label>
-															<label for="cartbounty-automation-include-image" class="cartbounty-unavailable"><?php esc_html_e('Include image', 'woo-save-abandoned-carts'); ?></label>
-															<p class='cartbounty-additional-information'>
-																<i class='cartbounty-hidden cartbounty-unavailable-notice'><?php echo $this->display_unavailable_notice( 'wp_include_image' ); ?></i>
+													</div>
+													<div class="cartbounty-row">
+														<div class="cartbounty-titles-column cartbounty-col-sm-12 cartbounty-col-md-4 cartbounty-col-lg-3">
+															<h4><?php esc_html_e('Appearance', 'woo-save-abandoned-carts'); ?></h4>
+															<p class="cartbounty-titles-column-description">
+																<?php esc_html_e( 'Choose a template that will be used to display the abandoned cart reminder email.', 'woo-save-abandoned-carts' ); ?> <?php echo sprintf(
+																		/* translators: %s - Link tags */
+																		 esc_html__( 'Look here to see advanced %stemplate customization%s options.', 'woo-save-abandoned-carts'), '<a href="'. esc_url( $this->get_trackable_link( CARTBOUNTY_LICENSE_SERVER_URL . 'templates', 'wp_template_customization' ) ) .'" target="_blank">', '</a>');?>
 															</p>
 														</div>
+														<div class="cartbounty-settings-column cartbounty-col-sm-12 cartbounty-col-md-8 cartbounty-col-lg-9">
+															<div class="cartbounty-settings-group">
+																<h4><?php esc_html_e('Template', 'woo-save-abandoned-carts'); ?></h4>
+																<div class="cartbounty-flex-container">
+																	<div id="cartbounty-automation-template-light-<?php echo esc_attr( $key ); ?>" class="cartbounty-type cartbounty-email-template cartbounty-email-template-light cartbounty-radio-active">
+																		<label class="cartbounty-image" for="cartbounty-template-light">
+																			<em>
+																				<i>
+																					<span class="cartbounty-template-top-image"></span>
+																					<img src="<?php echo esc_url( plugins_url( 'assets/template-light.svg', __FILE__ ) ) ; ?>" title="<?php esc_attr_e('Light', 'woo-save-abandoned-carts'); ?>" alt="<?php esc_attr_e('Light', 'woo-save-abandoned-carts'); ?>"/>
+																				</i>
+																			</em>
+																			<input id="cartbounty-template-light-<?php echo esc_attr( $key ); ?>" class="cartbounty-radiobutton" type="radio" name="cartbounty_automation_steps[<?php echo esc_attr( $key ); ?>][template]" value="1" <?php echo $this->disable_field(); ?> checked="" autocomplete="off" />
+																			<?php esc_html_e('Light', 'woo-save-abandoned-carts'); ?>
+																		</label>
+																	</div>
+																	<div id="cartbounty-automation-template-rows-<?php echo esc_attr( $key ); ?>" class="cartbounty-type cartbounty-email-template cartbounty-email-template-rows">
+																		<label class="cartbounty-image" for="cartbounty-template-rows">
+																			<em>
+																				<i>
+																					<span class="cartbounty-template-top-image"></span>
+																					<img src="<?php echo esc_url( plugins_url( 'assets/template-rows.svg', __FILE__ ) ) ; ?>" title="<?php esc_attr_e('With cart contents', 'woo-save-abandoned-carts'); ?>" alt="<?php esc_attr_e('With cart contents', 'woo-save-abandoned-carts'); ?>"/>
+																				</i>
+																				<span class="cartbounty-wordpress-additional-style"><?php esc_html_e('Upgrade to enable this style', 'woo-save-abandoned-carts'); ?>
+																					<a href="<?php echo esc_url( $this->get_trackable_link( CARTBOUNTY_LICENSE_SERVER_URL, 'wp_style_rows' ) ); ?>" class="button cartbounty-button" target="_blank"><?php esc_html_e('Get Pro', 'woo-save-abandoned-carts'); ?></a>
+																				</span>
+																			</em>
+																			<input id="cartbounty-template-rows-<?php echo esc_attr( $key ); ?>" class="cartbounty-radiobutton" type="radio" disabled autocomplete="off" />
+																			<?php esc_html_e('With cart contents', 'woo-save-abandoned-carts'); ?>
+																		</label>
+																	</div>
+																	<div id="cartbounty-automation-template-columns-<?php echo esc_attr( $key ); ?>" class="cartbounty-type cartbounty-email-template cartbounty-email-template-columns">
+																		<label class="cartbounty-image" for="cartbounty-template-columns">
+																			<em>
+																				<i>
+																					<span class="cartbounty-template-top-image"></span>
+																					<img src="<?php echo esc_url( plugins_url( 'assets/template-columns.svg', __FILE__ ) ) ; ?>" title="<?php esc_attr_e('With cart contents in columns', 'woo-save-abandoned-carts'); ?>" alt="<?php esc_attr_e('With cart contents in columns', 'woo-save-abandoned-carts'); ?>"/>
+																				</i>
+																				<span class="cartbounty-wordpress-additional-style"><?php esc_html_e('Upgrade to enable this style', 'woo-save-abandoned-carts'); ?>
+																					<a href="<?php echo esc_url( $this->get_trackable_link( CARTBOUNTY_LICENSE_SERVER_URL, 'wp_style_columns' ) ); ?>" class="button cartbounty-button" target="_blank"><?php esc_html_e('Get Pro', 'woo-save-abandoned-carts'); ?></a>
+																				</span>
+																			</em>
+																			<input id="cartbounty-template-columns-<?php echo esc_attr( $key ); ?>" class="cartbounty-radiobutton" type="radio" disabled autocomplete="off" />
+																			<?php esc_html_e('With cart contents in columns', 'woo-save-abandoned-carts'); ?>
+																		</label>
+																	</div>
+																</div>
+															</div>
+															<div class="cartbounty-settings-group">
+																<h4><?php esc_html_e('Colors', 'woo-save-abandoned-carts'); ?></h4>
+																<p class='cartbounty-additional-information'>
+																	<?php esc_html_e('Look at the default email colors and adjust them to fit your design requirements.', 'woo-save-abandoned-carts'); ?>
+																</p>
+																<div class="cartbounty-colors">
+																	<label for="cartbounty-template-main-color"><?php esc_html_e('Main:', 'woo-save-abandoned-carts'); ?></label>
+																	<input id="cartbounty-template-main-color-<?php echo esc_attr( $key ); ?>" type="text" name="cartbounty_automation_steps[<?php echo esc_attr( $key ); ?>][main_color]" class="cartbounty-color-picker cartbounty-text" value="<?php echo esc_attr( $main_color ); ?>" <?php echo $this->disable_field(); ?> autocomplete="off" />
+																</div>
+																<div class="cartbounty-colors">
+																	<label for="cartbounty-template-inverse-color"><?php esc_html_e('Button:', 'woo-save-abandoned-carts'); ?></label>
+																	<input id="cartbounty-template-button-color-<?php echo esc_attr( $key ); ?>" type="text" name="cartbounty_automation_steps[<?php echo esc_attr( $key ); ?>][button_color]" class="cartbounty-color-picker cartbounty-text" value="<?php echo esc_attr( $button_color ); ?>" <?php echo $this->disable_field(); ?> autocomplete="off" />
+																</div>
+																<div class="cartbounty-colors">
+																	<label for="cartbounty-template-text-color"><?php esc_html_e('Text:', 'woo-save-abandoned-carts'); ?></label>
+																	<input id="cartbounty-template-text-color-<?php echo esc_attr( $key ); ?>" type="text" name="cartbounty_automation_steps[<?php echo esc_attr( $key ); ?>][text_color]" class="cartbounty-color-picker cartbounty-text" value="<?php echo esc_attr( $text_color ); ?>" <?php echo $this->disable_field(); ?> autocomplete="off" />
+																</div>
+																<div class="cartbounty-colors">
+																	<label for="cartbounty-template-background-color"><?php esc_html_e('Backdrop:', 'woo-save-abandoned-carts'); ?></label>
+																	<input id="cartbounty-template-background-color-<?php echo esc_attr( $key ); ?>" type="text" name="cartbounty_automation_steps[<?php echo esc_attr( $key ); ?>][background_color]" class="cartbounty-color-picker cartbounty-text" value="<?php echo esc_attr( $background_color ); ?>" <?php echo $this->disable_field(); ?> autocomplete="off" />
+																</div>
+															</div>
+															<div class="cartbounty-settings-group cartbounty-toggle">
+																<label for="cartbounty-automation-include-image" class="cartbounty-switch cartbounty-unavailable">
+																	<input id="cartbounty-automation-include-image-<?php echo esc_attr( $key ); ?>" class="cartbounty-checkbox" type="checkbox" disabled autocomplete="off" />
+																	<span class="cartbounty-slider round"></span>
+																</label>
+																<label for="cartbounty-automation-include-image" class="cartbounty-unavailable"><?php esc_html_e('Include image', 'woo-save-abandoned-carts'); ?></label>
+																<p class='cartbounty-additional-information'>
+																	<i class='cartbounty-hidden cartbounty-unavailable-notice'><?php echo $this->display_unavailable_notice( 'wp_include_image' ); ?></i>
+																</p>
+															</div>
+														</div>
 													</div>
-												</div>
-												<div class="cartbounty-row">
-													<div class="cartbounty-titles-column cartbounty-col-sm-12 cartbounty-col-md-4 cartbounty-col-lg-3">
-														<h4><?php esc_html_e('Coupon', 'woo-save-abandoned-carts'); ?></h4>
-														<p class="cartbounty-titles-column-description">
-															<?php esc_html_e('Consider adding a coupon code to your reminder to encourage customers to complete their purchase.', 'woo-save-abandoned-carts'); ?>
-														</p>
-													</div>
-													<div class="cartbounty-settings-column cartbounty-col-sm-12 cartbounty-col-md-8 cartbounty-col-lg-9">
-														<div class="cartbounty-settings-group cartbounty-toggle">
-															<label for="cartbounty-automation-generate-coupon" class="cartbounty-switch cartbounty-unavailable">
-																<input id="cartbounty-automation-generate-coupon" class="cartbounty-checkbox" type="checkbox" disabled autocomplete="off" />
-																<span class="cartbounty-slider round"></span>
-															</label>
-															<label for="cartbounty-automation-generate-coupon" class="cartbounty-unavailable"><?php esc_html_e('Generate coupon', 'woo-save-abandoned-carts'); ?></label>
-															<p class='cartbounty-additional-information'>
-																<i class='cartbounty-hidden cartbounty-unavailable-notice'><?php echo $this->display_unavailable_notice( 'generate_coupon' ); ?></i>
+													<div class="cartbounty-row">
+														<div class="cartbounty-titles-column cartbounty-col-sm-12 cartbounty-col-md-4 cartbounty-col-lg-3">
+															<h4><?php esc_html_e('Coupon', 'woo-save-abandoned-carts'); ?></h4>
+															<p class="cartbounty-titles-column-description">
+																<?php esc_html_e('Consider adding a coupon code to your reminder to encourage customers to complete their purchase.', 'woo-save-abandoned-carts'); ?>
 															</p>
 														</div>
-														<div class="cartbounty-settings-group">
-															<label for="cartbounty-automation-existing-coupon"><?php esc_html_e('Include an existing coupon', 'woo-save-abandoned-carts'); ?></label>
-															<select id="cartbounty-automation-existing-coupon" class="cartbounty-select" placeholder="<?php esc_attr_e('Search coupon...', 'woo-save-abandoned-carts'); ?>" disabled autocomplete="off">
-															</select>
+														<div class="cartbounty-settings-column cartbounty-col-sm-12 cartbounty-col-md-8 cartbounty-col-lg-9">
+															<div class="cartbounty-settings-group cartbounty-toggle">
+																<label for="cartbounty-automation-generate-coupon" class="cartbounty-switch cartbounty-unavailable">
+																	<input id="cartbounty-automation-generate-coupon-<?php echo esc_attr( $key ); ?>" class="cartbounty-checkbox" type="checkbox" disabled autocomplete="off" />
+																	<span class="cartbounty-slider round"></span>
+																</label>
+																<label for="cartbounty-automation-generate-coupon" class="cartbounty-unavailable"><?php esc_html_e('Generate coupon', 'woo-save-abandoned-carts'); ?></label>
+																<p class='cartbounty-additional-information'>
+																	<i class='cartbounty-hidden cartbounty-unavailable-notice'><?php echo $this->display_unavailable_notice( 'generate_coupon' ); ?></i>
+																</p>
+															</div>
+															<div class="cartbounty-settings-group">
+																<label for="cartbounty-automation-existing-coupon"><?php esc_html_e('Include an existing coupon', 'woo-save-abandoned-carts'); ?></label>
+																<select id="cartbounty-automation-existing-coupon-<?php echo esc_attr( $key ); ?>" class="cartbounty-select" placeholder="<?php esc_attr_e('Search coupon...', 'woo-save-abandoned-carts'); ?>" disabled autocomplete="off">
+																</select>
+															</div>
 														</div>
 													</div>
-												</div>
-												<div class="cartbounty-row">
-													<div class="cartbounty-titles-column cartbounty-col-sm-12 cartbounty-col-md-4 cartbounty-col-lg-3">
-														<h4><?php esc_html_e('Test email', 'woo-save-abandoned-carts'); ?></h4>
-														<p class="cartbounty-titles-column-description">
-															<?php esc_html_e('Before activating this automation, you might want to test your email.', 'woo-save-abandoned-carts'); ?>
-														</p>
-													</div>
-													<div class="cartbounty-settings-column cartbounty-col-sm-12 cartbounty-col-md-8 cartbounty-col-lg-9">
-														<div class="cartbounty-settings-group">
-															<h4><?php esc_html_e('Preview', 'woo-save-abandoned-carts'); ?></h4>
-															<button type="button" class='cartbounty-button button-secondary cartbounty-progress cartbounty-preview-email' data-nonce='<?php echo esc_attr( $preview_email_nonce ); ?>' <?php echo $this->disable_field(); ?>><?php esc_html_e('Preview email', 'woo-save-abandoned-carts'); ?></button>
-															<?php echo $this->output_modal_container( 'email-preview' ); ?>
+													<div class="cartbounty-row">
+														<div class="cartbounty-titles-column cartbounty-col-sm-12 cartbounty-col-md-4 cartbounty-col-lg-3">
+															<h4><?php esc_html_e('Test email', 'woo-save-abandoned-carts'); ?></h4>
+															<p class="cartbounty-titles-column-description">
+																<?php esc_html_e('Before activating this automation, you might want to test your email.', 'woo-save-abandoned-carts'); ?>
+															</p>
 														</div>
-														<div class="cartbounty-settings-group">
-															<label for="cartbounty-send-test"><?php esc_html_e('Send a test email to', 'woo-save-abandoned-carts'); ?></label>
-															<div class="cartbounty-input-with-button">
-																<input id="cartbounty-send-test" class="cartbounty-text cartbounty-disable-submit" type="email"  placeholder="<?php echo esc_attr( get_option( 'admin_email' ) );?>" <?php echo $this->disable_field(); ?> />
-																<button type="button" class='cartbounty-button button-secondary cartbounty-progress cartbounty-send-email' data-nonce='<?php echo esc_attr( $test_email_nonce ); ?>' <?php echo $this->disable_field(); ?>><?php esc_html_e('Send', 'woo-save-abandoned-carts'); ?></button>
+														<div class="cartbounty-settings-column cartbounty-col-sm-12 cartbounty-col-md-8 cartbounty-col-lg-9">
+															<div class="cartbounty-settings-group">
+																<h4><?php esc_html_e('Preview', 'woo-save-abandoned-carts'); ?></h4>
+																<button type="button" class='cartbounty-button button-secondary cartbounty-progress cartbounty-preview-email' data-automation='<?php echo esc_attr( $key ); ?>' data-nonce='<?php echo esc_attr( $preview_email_nonce ); ?>' <?php echo $this->disable_field(); ?>><?php esc_html_e('Preview email', 'woo-save-abandoned-carts'); ?></button>
+																<?php echo $this->output_modal_container( $key ); ?>
+															</div>
+															<div class="cartbounty-settings-group">
+																<label for="cartbounty-send-test"><?php esc_html_e('Send a test email to', 'woo-save-abandoned-carts'); ?></label>
+																<div class="cartbounty-input-with-button">
+																	<input id="cartbounty-send-test-<?php echo esc_attr( $key ); ?>" class="cartbounty-text cartbounty-disable-submit" type="email"  placeholder="<?php echo esc_attr( get_option( 'admin_email' ) );?>" <?php echo $this->disable_field(); ?> />
+																	<button type="button" class='cartbounty-button button-secondary cartbounty-progress cartbounty-send-email' data-automation='<?php echo esc_attr( $key ); ?>' data-nonce='<?php echo esc_attr( $test_email_nonce ); ?>' <?php echo $this->disable_field(); ?>><?php esc_html_e('Send', 'woo-save-abandoned-carts'); ?></button>
+																</div>
 															</div>
 														</div>
 													</div>
 												</div>
 											</div>
-										</div>
-										<div class="cartbounty-step cartbounty-step-unavailable">
+										<?php }} ?>
+										<div class="cartbounty-step<?php esc_attr( $wordpress->check_if_accessible( 3 ) ); ?> cartbounty-step-unavailable" data-automation-step="3">
 											<div class="cartbounty-step-opener">
 												<div class="cartbounty-row">
 													<div class="cartbounty-titles-column cartbounty-col-xs-12 cartbounty-col-sm-4 cartbounty-col-lg-3">
-														<div class="cartbounty-automation-number">2</div>
+														<div class="cartbounty-automation-number">4</div>
 														<div class="cartbounty-automation-name">
-															<h3><?php echo esc_html( $wordpress->get_defaults( 'name', 1 ) ); ?></h3>
-															<p><?php $time_interval_name = $this->get_interval_data( 'cartbounty_automation_steps', 1, $just_selected_value = true );
+															<h3><?php echo esc_html( $wordpress->get_defaults( 'name', 3 ) ); ?></h3>
+															<p><?php $time_interval_name = $this->get_interval_data( 'cartbounty_automation_steps', 3, $just_selected_value = true );
 																echo sprintf( esc_html__('Sends after %s', 'woo-save-abandoned-carts'), esc_html( $time_interval_name ) );?></p>
 															<div class="cartbounty-automation-status">
 																<span class="status inactive"><?php esc_html_e( 'Disabled', 'woo-save-abandoned-carts' ); ?></span>
@@ -1800,102 +1801,6 @@ class CartBounty_Admin{
 												</div>
 											</div>
 										</div>
-										<div class="cartbounty-step cartbounty-step-unavailable">
-											<div class="cartbounty-step-opener">
-												<div class="cartbounty-row">
-													<div class="cartbounty-titles-column cartbounty-col-xs-12 cartbounty-col-sm-4 cartbounty-col-lg-3">
-														<div class="cartbounty-automation-number">3</div>
-														<div class="cartbounty-automation-name">
-															<h3><?php echo esc_html( $wordpress->get_defaults( 'name', 2 ) ); ?></h3>
-															<p><?php $time_interval_name = $this->get_interval_data( 'cartbounty_automation_steps', 2, $just_selected_value = true );
-																echo sprintf( esc_html__('Sends after %s', 'woo-save-abandoned-carts'), esc_html( $time_interval_name ) );?></p>
-															<div class="cartbounty-automation-status">
-																<span class="status inactive"><?php esc_html_e( 'Disabled', 'woo-save-abandoned-carts' ); ?></span>
-															</div>
-														</div>
-														<div class="cartbounty-step-trigger"></div>
-													</div>
-													<div class="cartbounty-settings-column cartbounty-col-xs-12 cartbounty-col-sm-8 cartbounty-col-lg-9">
-														<div class="cartbounty-row">
-															<div class="cartbounty-stats-container cartbounty-col-sm-12 cartbounty-col-lg-9">
-																<div class="cartbounty-stats cartbounty-percentage-switcher">
-																	<div class="cartbounty-stats-percentage">
-																		<i><?php esc_html_e( 'Queue', 'woo-save-abandoned-carts' ); ?></i>
-																		<p>0</p>
-																	</div>
-																	<div class="cartbounty-stats-count">
-																		<i><?php esc_html_e( 'Sends', 'woo-save-abandoned-carts' ); ?></i>
-																		<p>0</p>
-																	</div>
-																</div>
-																<div class="cartbounty-stats">
-																	<div class="cartbounty-stats-percentage">
-																		<i><?php esc_html_e( 'Open rate', 'woo-save-abandoned-carts' ); ?></i>
-																		<p>-</p>
-																	</div>
-																	<div class="cartbounty-stats-count">
-																		<a href="<?php echo esc_url( $this->get_trackable_link( CARTBOUNTY_LICENSE_SERVER_URL, 'wp_enable_email_stats' ) ); ?>" class="button cartbounty-button" target="_blank"><?php esc_html_e('Upgrade to see stats', 'woo-save-abandoned-carts'); ?></a>
-																		<i><?php esc_html_e( 'Opens', 'woo-save-abandoned-carts' ); ?></i>
-																		<p>-</p>
-																	</div>
-																</div>
-																<div class="cartbounty-stats">
-																	<div class="cartbounty-stats-percentage">
-																		<i><?php esc_html_e( 'Click rate', 'woo-save-abandoned-carts' ); ?></i>
-																		<p>-</p>
-																	</div>
-																	<div class="cartbounty-stats-count">
-																		<i><?php esc_html_e( 'Clicks', 'woo-save-abandoned-carts' ); ?></i>
-																		<p>-</p>
-																	</div>
-																</div>
-																<div class="cartbounty-stats">
-																	<div class="cartbounty-stats-percentage">
-																		<i><?php esc_html_e( 'Recovery rate', 'woo-save-abandoned-carts' ); ?></i>
-																		<p>-</p>
-																	</div>
-																	<div class="cartbounty-stats-count">
-																		<i><?php esc_html_e( 'Recovered', 'woo-save-abandoned-carts' ); ?></i>
-																		<p>-</p>
-																	</div>
-																</div>
-																<div class="cartbounty-stats">
-																	<div class="cartbounty-stats-percentage">
-																		<i><?php esc_html_e( 'Unsubscribe rate', 'woo-save-abandoned-carts' ); ?></i>
-																		<p>-</p>
-																	</div>
-																	<div class="cartbounty-stats-count">
-																		<i><?php esc_html_e( 'Unsubscribes', 'woo-save-abandoned-carts' ); ?></i>
-																		<p>-</p>
-																	</div>
-																</div>
-															</div>
-															<div class="cartbounty-trigger-container cartbounty-col-sm-12 cartbounty-col-lg-3">
-																<div class="cartbounty-automation-status">
-																	<span class="status inactive"><?php esc_html_e( 'Disabled', 'woo-save-abandoned-carts' ); ?></span>
-																</div>
-																<div class="cartbounty-step-trigger"></div>
-															</div>
-														</div>
-													</div>
-												</div>
-											</div>
-											<div class="cartbounty-wordpress-get-additional-step">
-												<div class="cartbounty-row">
-													<div class="cartbounty-titles-column cartbounty-col-sm-12 cartbounty-col-lg-3">
-														<div class="cartbounty-automation-name">
-															<h3><?php esc_html_e('Upgrade to enable this reminder', 'woo-save-abandoned-carts'); ?></h3>
-														</div>
-													</div>
-													<div class="cartbounty-settings-column cartbounty-col-sm-12 cartbounty-col-lg-9">
-														<div class="cartbounty-stats">
-															<a href="<?php echo esc_url( $this->get_trackable_link( CARTBOUNTY_LICENSE_SERVER_URL, 'wp_add_automation_step' ) ); ?>" class="button cartbounty-button" target="_blank"><?php esc_html_e('Get Pro', 'woo-save-abandoned-carts'); ?></a>
-														</div>
-													</div>
-												</div>
-											</div>
-										</div>
-									<?php } ?>
 								</div>
 							</div>
 						</div>
@@ -5121,8 +5026,8 @@ class CartBounty_Admin{
 
 			case 'steps':
 				$contents = array(
-					'title' 		=> esc_html__( 'Make the most of your automation with a 3-step email series', 'woo-save-abandoned-carts' ),
-					'description' 	=> esc_html__( 'A single recovery email can raise your sales but sending 2 or 3 follow-up emails is proved to get the most juice out of your recovery campaigns.', 'woo-save-abandoned-carts' ),
+					'title' 		=> esc_html__( 'Make the most of your automation with a 4-step email series', 'woo-save-abandoned-carts' ),
+					'description' 	=> esc_html__( 'A single recovery email can raise your sales but sending 4 follow-up emails is proved to get the most juice out of your recovery campaigns.', 'woo-save-abandoned-carts' ),
 					'image'			=> plugins_url( 'assets/3-step-email-series.gif', __FILE__ ),
 					'color_class'	=> ' cartbounty-teal',
 					'main_url'		=> $this->get_trackable_link( CARTBOUNTY_LICENSE_SERVER_URL, $medium, $tag ),

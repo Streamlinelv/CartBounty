@@ -124,7 +124,7 @@ Learn more about [Exit Intent Technology](https://www.cartbounty.com/exit-intent
 
 The public-facing components of CartBounty, such as the Exit Intent popup and WordPress recovery emails, can be easily customized using the plugin's settings. However, if you need more advanced customization options, you can use the pre-built CartBounty templates or take advantage of the available actions and filters.
 
-You will find all available template files inside **/plugins/woo-save-abandoned-carts-pro/templates** folder. When you open these files, you will notice they all contain hooks that allow you to add, edit or remove content without the need to edit template files themselves. This method protects against plugin upgrade issues, as the template files can be left completely untouched.
+You will find all available template files inside **/plugins/woo-save-abandoned-carts/templates** folder. When you open these files, you will notice they all contain hooks that allow you to add, edit or remove content without the need to edit template files themselves. This method protects against plugin upgrade issues, as the template files can be left completely untouched.
 
 Please copy the template file you require to your active theme to keep your customization intact after plugin updates. You can copy them to either one of these locations:
 

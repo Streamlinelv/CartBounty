@@ -54,6 +54,7 @@ class CartBounty_Activator{
 			mail_sent TINYINT NOT NULL DEFAULT 0,
 			wp_unsubscribed TINYINT DEFAULT 0,
 			wp_steps_completed INT(3) DEFAULT 0,
+			wp_last_sent DATETIME DEFAULT '0000-00-00 00:00:00',
 			wp_complete TINYINT DEFAULT 0,
 			type VARCHAR(10) DEFAULT 0,
 			saved_via VARCHAR(10),

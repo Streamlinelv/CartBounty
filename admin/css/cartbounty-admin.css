@@ -1993,10 +1993,6 @@ label.cartbounty-unavailable{
 	opacity: .3;
 }
 
-.cartbounty-step-disabled.cartbounty-step-unavailable:hover{
-	opacity: 1;
-}
-
 .cartbounty-email-history-list{
 	margin: 3px 0 2px;
 	display: inline-block;
