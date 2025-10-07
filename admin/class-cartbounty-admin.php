@@ -573,9 +573,9 @@ class CartBounty_Admin{
 						}
 
 						$cart_status = 'all';
-				        if (isset($_GET['cart-status'])){
-				            $cart_status = $_GET['cart-status'];
-				        }
+						if (isset($_GET['cart-status'])){
+							$cart_status = $_GET['cart-status'];
+						}
 					?>
 					<?php echo $message; 
 					if ($this->get_cart_count( 'all' ) == 0): //If no abandoned carts, then output this note ?>
@@ -900,6 +900,26 @@ class CartBounty_Admin{
 													</div>
 												</div>
 											</div>
+										</div>
+									</div>
+								</div>
+								<div class="cartbounty-row">
+									<div class="cartbounty-titles-column cartbounty-col-sm-4 cartbounty-col-lg-3">
+										<h4><?php esc_html_e( 'Magic login', 'woo-save-abandoned-carts' ); ?></h4>
+										<p class="cartbounty-titles-column-description">
+											<?php esc_html_e( 'Automatically sign in registered customers when they open their recovery link. Make sure the Cart, Checkout and My account pages bypass all caches (CDN and caching plugins).', 'woo-save-abandoned-carts' ); ?>
+										</p>
+									</div>
+									<div class="cartbounty-settings-column cartbounty-col-sm-8 cartbounty-col-lg-9">
+										<div class="cartbounty-settings-group cartbounty-toggle">
+											<label for="cartbounty-magic-login" class="cartbounty-switch cartbounty-unavailable">
+												<input id="cartbounty-magic-login" class="cartbounty-checkbox" type="checkbox" disabled />
+												<span class="cartbounty-slider round"></span>
+											</label>
+											<label for="cartbounty-magic-login" class="cartbounty-unavailable"><?php esc_html_e( 'Enable Magic login', 'woo-save-abandoned-carts' ); ?></label>
+											<p class='cartbounty-additional-information'>
+												<i class='cartbounty-hidden cartbounty-unavailable-notice'><?php echo $this->display_unavailable_notice( 'magic_login' ); ?></i>
+											</p>
 										</div>
 									</div>
 								</div>
@@ -5073,8 +5093,8 @@ class CartBounty_Admin{
 
 			case 'upgrade':
 				$contents = array(
-					'title' 		=> esc_html__( 'Automate your abandoned cart recovery process and get back to those lovely cat videos 😸', 'woo-save-abandoned-carts' ),
-					'description' 	=> esc_html__( 'Use your time wisely by enabling Pro features and increase your sales.', 'woo-save-abandoned-carts' ),
+					'title' 		=> esc_html__( 'Unlock the full power of CartBounty and treat yourself with some lovely cat videos. 😸', 'woo-save-abandoned-carts' ),
+					'description' 	=> esc_html__( 'Personalized messages, coupon codes, SMS reminders, push notifications, Early Capture - just some of the cool features that help you recover more sales.', 'woo-save-abandoned-carts' ),
 					'image'			=> plugins_url( 'assets/notification-email.gif', __FILE__ ),
 					'color_class'	=> ' cartbounty-purple',
 					'main_url'		=> $this->get_trackable_link( CARTBOUNTY_LICENSE_SERVER_URL, $medium, $tag ),
@@ -5088,9 +5108,9 @@ class CartBounty_Admin{
 
 			case 'steps':
 				$contents = array(
-					'title' 		=> esc_html__( 'Make the most of your automation with a 4-step email series', 'woo-save-abandoned-carts' ),
-					'description' 	=> esc_html__( 'A single recovery email can raise your sales but sending 4 follow-up emails is proved to get the most juice out of your recovery campaigns.', 'woo-save-abandoned-carts' ),
-					'image'			=> plugins_url( 'assets/3-step-email-series.gif', __FILE__ ),
+					'title' 		=> esc_html__( 'Make the most of your WordPress 4-step recovery automation!', 'woo-save-abandoned-carts' ),
+					'description' 	=> esc_html__( 'Recover more shopping carts with personalized messages, product templates, unique coupon codes and track email stats like open and click rates.', 'woo-save-abandoned-carts' ),
+					'image'			=> plugins_url( 'assets/4-step-email-series.gif', __FILE__ ),
 					'color_class'	=> ' cartbounty-teal',
 					'main_url'		=> $this->get_trackable_link( CARTBOUNTY_LICENSE_SERVER_URL, $medium, $tag ),
 					'local_url'		=> false,

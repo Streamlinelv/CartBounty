@@ -997,7 +997,7 @@ class CartBounty_WordPress{
 	 */
 	public static function create_email_table(){
 		global $wpdb;
-		$admin = $this->admin();
+		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
 		$email_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME_EMAILS;
 		$charset_collate = $wpdb->get_charset_collate();
 		$misc_settings = $admin->get_settings( 'misc_settings' );

@@ -2456,8 +2456,8 @@ class CartBounty_Reports{
 			<?php
 				$position++;
 				$product_title = $product['product_title'] ?? esc_html__( 'n/a', 'woo-save-abandoned-carts' );
-				$image_url = '#';
-				$edit_product_link = '#';
+				$image_url = '';
+				$edit_product_link = '';
 
 				if( !$on_load ){ //If not triggered on page load, but Ajax request
 					$image_url = $admin->get_product_thumbnail_url( $product, 'thumbnail' ) ?? 'na';

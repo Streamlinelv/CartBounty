@@ -48,7 +48,8 @@
 #cartbounty-period-dropdown-selected-period-label,
 .cartbounty-notice-content a,
 .cartbounty-report-chart svg,
-.cartbounty-section-item.cartbounty-item-faded{
+.cartbounty-section-item.cartbounty-item-faded,
+.cartbounty-unavailable{
 	-webkit-transition: 	all 0.2s ease-in-out;
 	-moz-transition: 		all 0.2s ease-in-out;
 	-o-transition: 			all 0.2s ease-in-out;
@@ -1708,6 +1709,10 @@ em.cartbounty-connection,
 
 label.cartbounty-unavailable{
 	opacity: .5;
+}
+
+label.cartbounty-unavailable:hover{
+	opacity: .8;
 }
 
 .cartbounty-step.cartbounty-step-unavailable.cartbounty-step-active{
