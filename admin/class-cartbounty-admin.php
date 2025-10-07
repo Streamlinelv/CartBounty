@@ -3005,7 +3005,7 @@ class CartBounty_Admin{
 		$misc_settings = $this->get_settings( 'misc_settings', $option );
 		$last_time = strtotime( $misc_settings ); //Convert time from text to Unix timestamp
 		
-		$date = date_create( current_time( 'mysql', false ) );
+		$date = date_create( current_time( 'mysql', true ) );
 		$current_time = strtotime( date_format( $date, 'Y-m-d H:i:s' ) );
 		
 		if( $last_time < $current_time - $days * 24 * 60 * 60 ){
@@ -3164,7 +3164,7 @@ class CartBounty_Admin{
 			case 'upgrade':
 
 				if( $operation == 'declined' ){
-					$misc_settings['time_bubble_displayed'] = current_time( 'mysql' );
+					$misc_settings['time_bubble_displayed'] = current_time( 'mysql', true );
 					update_option( 'cartbounty_misc_settings', $misc_settings ); //Update declined count according to the current level
 					wp_send_json_success();
 
@@ -3174,7 +3174,7 @@ class CartBounty_Admin{
 			case 'steps':
 
 				if( $operation == 'declined' ){
-					$misc_settings['time_bubble_steps_displayed'] = current_time( 'mysql' );
+					$misc_settings['time_bubble_steps_displayed'] = current_time( 'mysql', true );
 					update_option( 'cartbounty_misc_settings', $misc_settings ); //Update declined count according to the current level
 					wp_send_json_success();
 
@@ -3713,7 +3713,7 @@ class CartBounty_Admin{
 		$interval = $this->convert_miliseconds_to_minutes( $interval );
 
 		//Calculating time intervals
-		$datetime = current_time( 'mysql' );
+		$datetime = current_time( 'mysql', true );
 		$date_format = 'Y-m-d H:i:s';
 
 		return array(

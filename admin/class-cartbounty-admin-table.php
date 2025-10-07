@@ -352,22 +352,26 @@ class CartBounty_Table extends WP_List_Table{
 	 * @param    $item - row (key, value array)
 	 */
 	function column_time( $item ){
-		$time = new DateTime( $item['time'] );
-		$date_iso = $time->format( 'c' );
-		$date_title = date_i18n( 'M d, Y H:i:s', $time->getTimestamp() );
-		$utc_time = $time->format( 'U' );
+		$time = new DateTime( $item['time'], new DateTimeZone( 'UTC' ) );
+		$ts_utc = $time->getTimestamp();
+		$now_utc = current_time( 'timestamp', true );
+		$friendly = wp_date( 'M d, Y', $ts_utc );
+		$date_iso = gmdate( 'c', $ts_utc );
+		$date_title = wp_date( 'M d, Y H:i:s', $ts_utc );
 
-		if( $utc_time > strtotime( '-1 day', current_time( 'timestamp' ) ) ){ //In case the abandoned cart is newly captued
-			 $friendly_time = sprintf(
-				/* translators: %1$s - Time, e.g. 1 minute, 5 hours */
+		if( $ts_utc > ( $now_utc - DAY_IN_SECONDS ) ){
+			$friendly = sprintf(
 				esc_html__( '%1$s ago', 'woo-save-abandoned-carts' ),
-				human_time_diff( $utc_time, current_time( 'timestamp' ) )
+				human_time_diff( $ts_utc, $now_utc )
 			);
-		}else{ //In case the abandoned cart is older tahn 24 hours
-			$friendly_time = date_i18n( 'M d, Y', $time->getTimestamp() );
 		}
 
-		return sprintf( '<svg class="cartbounty-time-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 31.18 31.18"><path d="M15.59,31.18A15.59,15.59,0,1,1,31.18,15.59,15.6,15.6,0,0,1,15.59,31.18Zm0-27.34A11.75,11.75,0,1,0,27.34,15.59,11.76,11.76,0,0,0,15.59,3.84Z"/><path d="M20.39,20.06c-1.16-.55-6-3-6.36-3.19s-.46-.76-.46-1.18V7.79a1.75,1.75,0,1,1,3.5,0v6.88s4,2.06,4.8,2.52a1.6,1.6,0,0,1,.69,2.16A1.63,1.63,0,0,1,20.39,20.06Z"/></svg><time datetime="%s" title="%s">%s</time>', esc_attr( $date_iso ), esc_attr( $date_title ), esc_html( $friendly_time ) );
+		return sprintf(
+			'<svg class="cartbounty-time-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 31.18 31.18"><path d="M15.59,31.18A15.59,15.59,0,1,1,31.18,15.59,15.6,15.6,0,0,1,15.59,31.18Zm0-27.34A11.75,11.75,0,1,0,27.34,15.59,11.76,11.76,0,0,0,15.59,3.84Z"/><path d="M20.39,20.06c-1.16-.55-6-3-6.36-3.19s-.46-.76-.46-1.18V7.79a1.75,1.75,0,1,1,3.5,0v6.88s4,2.06,4.8,2.52a1.6,1.6,0,0,1,.69,2.16A1.63,1.63,0,0,1,20.39,20.06Z"/></svg><time datetime="%s" title="%s">%s</time>',
+			esc_attr( $date_iso ),
+			esc_attr( $date_title ),
+			esc_html( $friendly )
+		);
 	}
 
 	/**
@@ -381,7 +385,7 @@ class CartBounty_Table extends WP_List_Table{
 		$admin = new CartBounty_Admin(CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER);
 		$wordpress = $this->wordpress();
 		$cart_time = strtotime($item['time']);
-		$date = date_create(current_time( 'mysql', false ));
+		$date = date_create(current_time( 'mysql', true ));
 		$current_time = strtotime(date_format($date, 'Y-m-d H:i:s'));
 		$status = '';
 		$cart_waiting_time = $admin->get_waiting_time();

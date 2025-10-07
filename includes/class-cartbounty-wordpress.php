@@ -293,7 +293,7 @@ class CartBounty_WordPress{
 		$result = wp_mail( sanitize_email($to), $admin->sanitize_field($subject), $message, $header );
 		
 		if(!$test){ //If this is not a test email
-			$current_time = current_time( 'mysql', false );
+			$current_time = current_time( 'mysql', true );
 			$template = ( isset($step['template']) ) ? $step['template'] : $this->get_defaults( 'template', $step_nr );
 			$this->update_cart( $cart, $current_time ); //Update cart information
 			$this->add_email( $cart->id, $step_nr, $current_time ); //Create a new row in the emails table
@@ -745,7 +745,7 @@ class CartBounty_WordPress{
 			foreach( $emails as $key => $email ){
 				$step = $email->step + 1; //Adding + 1 as step numbering starts from 0
 				$time = new DateTime( $email->time );
-				$output .= '<i class="cartbounty-email-history-item"><i class="cartbounty-automation-number">'. esc_html( $step ) .'</i>' . esc_html( $time->format( 'M d, Y H:i' ) ) . '</i>';
+				$output .= '<i class="cartbounty-email-history-item"><i class="cartbounty-automation-number">'. esc_html( $step ) .'</i>' . esc_html( wp_date( 'M d, Y H:i', $time->getTimestamp() ) ) . '</i>';
 			}
 			$output .= '</em>';
 		}

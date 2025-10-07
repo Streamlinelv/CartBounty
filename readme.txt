@@ -37,6 +37,7 @@ CartBounty saves and displays all shopping cart activity from the moment a produ
 * Get notified about newly abandoned carts
 * Export abandoned carts (**Pro**)
 * Prevent bots from leaving abandoned carts using Google reCAPTCHA (**Pro**)
+* Magic login to automatically sign in registered customers when they open their recovery link for faster checkout and improved UX (**Pro**)
 
 ## Automate abandoned cart recovery
 
@@ -335,6 +336,7 @@ In addition, the Pro version allows you to select if guests from specific countr
 
 = 8.9 =
 * Added two additional reminder steps for WordPress abandoned cart recovery
+* Moved time storage from local timezone to UTC to improve accuracy and cross-system consistency
 * Code refactoring and optimization
 
 [See changelog for all versions](https://raw.githubusercontent.com/Streamlinelv/woo-save-abandoned-carts/master/changelog.txt).

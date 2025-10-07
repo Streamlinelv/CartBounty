@@ -785,7 +785,7 @@ class CartBounty_Public{
 		//Retrieving cart total value and currency
 		$cart_total = WC()->cart->total;
 		$cart_currency = $this->get_selected_currency();
-		$current_time = current_time( 'mysql', false ); //Retrieving current time
+		$current_time = current_time( 'mysql', true ); //Retrieving current time
 		$session_id = WC()->session->get( 'cartbounty_session_id' ); //Check if the session is already set
 		
 		if( empty( $session_id ) ){ //If session value does not exist - set one now

@@ -1247,16 +1247,16 @@ class CartBounty_Reports{
 		$end = new DateTime($end_date);
 
 		if( $start->format( 'Y-m' ) == $end->format( 'Y-m' ) ){ //Check if dates are within same year and month
-			$formatted_start = date_i18n( 'M j', $start->getTimestamp() );
-			$formatted_end = date_i18n( 'j, Y', $end->getTimestamp() );
+			$formatted_start = wp_date( 'M j', $start->getTimestamp() );
+			$formatted_end = wp_date( 'j, Y', $end->getTimestamp() );
 
 		}elseif( $start->format( 'Y' ) == $end->format( 'Y' ) ){ //Check if dates are within same year
-			$formatted_start = date_i18n( 'M j', $start->getTimestamp() );
-			$formatted_end = date_i18n( 'M j, Y', $end->getTimestamp() );
+			$formatted_start = wp_date( 'M j', $start->getTimestamp() );
+			$formatted_end = wp_date( 'M j, Y', $end->getTimestamp() );
 
 		}else{ //If dates span across different years
-			$formatted_start = date_i18n( 'M j, Y', $start->getTimestamp() );
-			$formatted_end = date_i18n( 'M j, Y', $end->getTimestamp() );
+			$formatted_start = wp_date( 'M j, Y', $start->getTimestamp() );
+			$formatted_end = wp_date( 'M j, Y', $end->getTimestamp() );
 		}
 
 		//Return the formatted date string
