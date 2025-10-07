@@ -10,7 +10,6 @@
  * @subpackage CartBounty - Save and recover abandoned carts for WooCommerce/public
  * @author     Streamline.lv
  */
- 
 class CartBounty_Public{
 	
 	/**
@@ -32,6 +31,27 @@ class CartBounty_Public{
 	private $version;
 
 	/**
+	 * @since    8.9
+	 * @access   protected
+	 * @var      CartBounty_Admin    $admin    Provides methods to control and extend the plugin's admin area.
+	 */
+	protected $admin = null;
+
+	/**
+	 * @since 8.9
+	 * @access protected
+	 * @return CartBounty_Admin
+	 */
+	protected function admin(){
+		
+		if( $this->admin === null ){
+			$this->admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		}
+
+		return $this->admin;
+	}
+
+	/**
 	 * Initialize the class and set its properties.
 	 *
 	 * @since    1.0
@@ -39,7 +59,6 @@ class CartBounty_Public{
 	 * @param    string    $version    The version of this plugin.
 	 */
 	public function __construct( $plugin_name, $version ){
-		global $wpdb;
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
 	}
@@ -65,7 +84,7 @@ class CartBounty_Public{
 
 		if( !class_exists( 'WooCommerce' ) ) return; //If WooCommerce does not exist
 
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$admin_ajax = admin_url( 'admin-ajax.php' );
 		$email_validation = apply_filters( 'cartbounty_email_validation', '^[^\s@]+@[^\s@]+\.[^\s@]{2,}$');
 
@@ -118,7 +137,7 @@ class CartBounty_Public{
 
 		if( $this->is_bot() ) return;
 
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 
 		if( $this->cart_recoverable() ){ //If cart is recoverable
 			$anonymous = false;
@@ -162,7 +181,7 @@ class CartBounty_Public{
 	 */
 	function create_new_cart( $cart = array(), $user_data = array(), $anonymous = false, $user_ip = '' ){
 		global $wpdb;
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
 
 		//In case if the cart has no items in it, we must delete the cart
@@ -252,7 +271,7 @@ class CartBounty_Public{
 	function update_cart( $cart = array(), $user_data = array(), $anonymous = false, $user_ip = '' ){
 		//In case if the cart has no items in it, we must delete the cart
 		if( empty( $cart['cart_contents'] ) ){
-			$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+			$admin = $this->admin();
 			$admin->clear_cart_data();
 			return;
 		}
@@ -291,7 +310,7 @@ class CartBounty_Public{
 	 */
 	function update_cart_data( $cart, $user_ip = '' ){
 		global $wpdb;
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
 		
 		$updated_rows = $wpdb->query(
@@ -331,7 +350,7 @@ class CartBounty_Public{
 	 */
 	function update_cart_and_user_data( $cart, $user_data, $user_ip = '' ){
 		global $wpdb;
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
 		$other_fields = NULL;
 		$cart_source = $this->get_cart_source();
@@ -423,7 +442,7 @@ class CartBounty_Public{
 		global $wpdb;
 		$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
 		$identifiable = false;
-		$admin = new CartBounty_Admin(CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER);
+		$admin = $this->admin();
 		$where_sentence = $admin->get_where_sentence('recoverable');
 		$cart = $this->read_cart();
 
@@ -450,7 +469,7 @@ class CartBounty_Public{
 	 * @return   Array
 	 */
 	function get_user_data(){
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$user_data = array(
 			'name'			=> '',
 			'surname'		=> '',
@@ -624,7 +643,7 @@ class CartBounty_Public{
 
 		if( $cart['session_id'] !== NULL ){
 			global $wpdb;
-			$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+			$admin = $this->admin();
 			$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
 			$time = $admin->get_time_intervals();
 			$cooldown_period = 0;
@@ -720,7 +739,7 @@ class CartBounty_Public{
 
 		if($duplicate_count){ //If we have updated at least one row
 			if($duplicate_count > 1){ //Checking if we have updated more than a single row to know if there were duplicates
-				$admin = new CartBounty_Admin(CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER);
+				$admin = $this->admin();
 				$where_sentence = $admin->get_where_sentence('anonymous');
 				//First delete all duplicate anonymous carts
 				$deleted_duplicate_anonymous_carts = $wpdb->query(
@@ -936,7 +955,7 @@ class CartBounty_Public{
 
 		if( !$saved_cart ) return;
 
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$get_consent_field_data = $admin->get_consent_field_data( 'field_name' );
 		$other_fields = maybe_unserialize( $saved_cart->other_fields );
 		$location_data = $admin->get_cart_location( $saved_cart->location );
@@ -1013,7 +1032,7 @@ class CartBounty_Public{
 
 		if( WC()->session ){
 
-			$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+			$admin = $this->admin();
 			$session_id = WC()->session->get_customer_id();
 			$counter = $admin->get_cartbounty_transient( 'cartbounty_session' . $session_id );
 
@@ -1038,7 +1057,7 @@ class CartBounty_Public{
 	 */
 	public function update_woocommerce_database_session( $saved_cart = false ){
 		global $wpdb;
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$session_table_name = $wpdb->prefix . 'woocommerce_sessions';
 		$is_block_checkout = false;
 		$use_same_address_for_billing = false;
@@ -1047,8 +1066,7 @@ class CartBounty_Public{
 	    if( WC()->session ){
 
 	    	if( !$saved_cart ){
-				$public = new CartBounty_Public( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
-				$saved_cart = $public->get_saved_cart();
+				$saved_cart = $this->get_saved_cart();
 			}
 
 			if( !$saved_cart ) return; //Stop if abandoned cart missing
@@ -1191,7 +1209,7 @@ class CartBounty_Public{
 	 */
 	function get_saved_cart(){
 		global $wpdb;
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
 		$cart = $this->read_cart();
 		
@@ -1227,7 +1245,7 @@ class CartBounty_Public{
 
 		if( WC()->session->get( 'cartbounty_from_link' ) ) return; //Exit if user returned from link - it means we have increased this before
 
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$misc_settings = $admin->get_settings( 'misc_settings' );
 		$misc_settings['recoverable_carts'] = $misc_settings['recoverable_carts'] + 1;
 		update_option( 'cartbounty_misc_settings', $misc_settings );
@@ -1248,7 +1266,7 @@ class CartBounty_Public{
 
 		if( WC()->session->get( 'cartbounty_anonymous_count_increased' ) ) return; //Exit in case we already have run this once
 
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$misc_settings = $admin->get_settings( 'misc_settings' );
 		$misc_settings['anonymous_carts'] = $misc_settings['anonymous_carts'] + 1;
 		update_option( 'cartbounty_misc_settings', $misc_settings );
@@ -1269,7 +1287,7 @@ class CartBounty_Public{
 
 		WC()->session->set( 'cartbounty_recovered_count_increased', 1 );
 
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$misc_settings = $admin->get_settings( 'misc_settings' );
 		$misc_settings['recovered_carts'] = $misc_settings['recovered_carts'] + 1;
 		update_option( 'cartbounty_misc_settings', $misc_settings );
@@ -1284,7 +1302,7 @@ class CartBounty_Public{
 	function decrease_recoverable_cart_count( $count ){
 		if( !class_exists( 'WooCommerce' ) ) return; //If WooCommerce does not exist
 
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$misc_settings = $admin->get_settings( 'misc_settings' );
 		$misc_settings['recoverable_carts'] = $misc_settings['recoverable_carts'] - $count;
 		update_option( 'cartbounty_misc_settings', $misc_settings ); //Decreasing the count by one abandoned cart
@@ -1304,7 +1322,7 @@ class CartBounty_Public{
 	function decrease_anonymous_cart_count( $count ){
 		if( !class_exists( 'WooCommerce' ) ) return; //If WooCommerce does not exist
 
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$misc_settings = $admin->get_settings( 'misc_settings' );
 		$misc_settings['anonymous_carts'] = $misc_settings['anonymous_carts'] - $count;
 
@@ -1325,7 +1343,7 @@ class CartBounty_Public{
 		
 		if( !$this->tool_enabled( 'exit_intent' ) || !WC()->cart ) return; //If Exit Intent disabled or WooCommerce cart does not exist
 
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$user_is_admin = $admin->user_is_admin();
 		$output = $this->build_exit_intent_output( $user_is_admin ); //Creating the Exit Intent output
 		echo $output;
@@ -1341,7 +1359,7 @@ class CartBounty_Public{
 	 */
 	function build_exit_intent_output( $current_user_is_admin ){
 		global $wpdb;
-		$admin = new CartBounty_Admin(CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER);
+		$admin = $this->admin();
 		$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
 		$cart = $this->read_cart();
 		$heading = $admin->get_tools_defaults('heading', 'exit_intent');
@@ -1421,7 +1439,7 @@ class CartBounty_Public{
 	 * @param    string    $tool    Tool that is being checked
 	 */
 	function tool_enabled( $tool ){
-		$admin = new CartBounty_Admin(CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER);
+		$admin = $this->admin();
 
 		switch ( $tool ) {
 			case 'exit_intent':
@@ -1635,7 +1653,7 @@ class CartBounty_Public{
 	 * @return   string
 	 */
 	function get_checkout_fields(){
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$consent_field = $admin->get_consent_field_data( 'field_name' );
 		$selectors = array(
 			"email",

@@ -13,6 +13,27 @@
 class CartBounty_Reports{
 
 	/**
+	 * @since    8.9
+	 * @access   protected
+	 * @var      CartBounty_Admin    $admin    Provides methods to control and extend the plugin's admin area.
+	 */
+	protected $admin = null;
+
+	/**
+	 * @since 8.9
+	 * @access protected
+	 * @return CartBounty_Admin
+	 */
+	protected function admin(){
+		
+		if( $this->admin === null ){
+			$this->admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		}
+
+		return $this->admin;
+	}
+
+	/**
      * Returning reporting defaults
      *
      * @since    8.0
@@ -369,7 +390,7 @@ class CartBounty_Reports{
 	 * @param    string     $type    		  	  Type of data to return
 	 */
 	public function get_available_report_list_items( $type = 'quick_stats' ){
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$available_reports = $this->get_available_reports( $type );
 		$active_reports = $this->get_active_reports( $type );
 		$unavailable_reports = array();
@@ -677,7 +698,7 @@ class CartBounty_Reports{
 	 * @return   HTML
 	 */
 	public function display_top_products(){
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$content = '<div class="cartbounty-report-content cartbounty-empty-top"><div class="cartbounty-empty-text">' . esc_html__( 'N/A', 'woo-save-abandoned-carts' ) .'</div></div>';
 		$date_information = $this->get_selected_date_information();
 		$carts = $this->get_abandoned_cart_rows( $date_information );
@@ -821,7 +842,7 @@ class CartBounty_Reports{
 		
 		if( !$this->is_multiple_currencies() ) return; //Exit if we have just one currency
 
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$selected_currency = $this->get_selected_currency();
 
 		ob_start(); ?>
@@ -848,7 +869,7 @@ class CartBounty_Reports{
 	 * @return   HTML
 	 */
 	public function display_top_product_count(){
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		ob_start(); ?>
 		<div id="cartbounty-top-product-count" class="cartbounty-options-tooltip">
 			<h3 class="cartbounty-unavailable">
@@ -874,7 +895,7 @@ class CartBounty_Reports{
 	 * @return   HTML
 	 */
 	public function display_selected_country_count(){
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		ob_start(); ?>
 		<div id="cartbounty-country-count" class="cartbounty-options-tooltip">
 			<h3>
@@ -900,7 +921,7 @@ class CartBounty_Reports{
 	 * @return   HTML
 	 */
 	public function display_selected_map_report(){
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$available_reports = $this->get_available_reports( 'map' );
 		$selected_map = $this->get_selected_map();
 		ob_start(); ?>
@@ -1251,7 +1272,7 @@ class CartBounty_Reports{
 	 * @return   integer
 	 */
 	public function prepare_daypicker_data(){
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$defaults = $this->get_defaults();
 		$date_periods = array();
 		$comparison_periods = array();
@@ -1856,7 +1877,7 @@ class CartBounty_Reports{
 	 * @param    string           $report           			Report label
 	 */
 	private function get_abandonment_rate( $carts, $date_information, $report ){
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$current_period_abandoned_count = 0;
 		$current_period_converted_count = 0;
 		$previous_period_abandoned_count = 0;
@@ -1922,7 +1943,7 @@ class CartBounty_Reports{
 	 * @param    string           $report           			Report label
 	 */
 	private function get_cart_count( $type, $carts, $date_information, $report ){
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$previous_period_cart_count = 0;
 		$current_period_cart_count = 0;
 		$previous_period_data = array();
@@ -2011,7 +2032,7 @@ class CartBounty_Reports{
 	 * @param    string           $report           			Report label
 	 */
 	private function get_cart_revenue( $type, $carts, $date_information, $report ){
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$previous_period_value = 0;
 		$current_period_value = 0;
 
@@ -2159,7 +2180,7 @@ class CartBounty_Reports{
 	 * @param    array           $data         Country data
 	 */
 	private function prepare_country_data( $data ){
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$result = array();
 
 		foreach( $data as $key => $value ){
@@ -2415,7 +2436,7 @@ class CartBounty_Reports{
 	 * @param    array     		  $top_products    	Top products data
 	 */
 	public function get_top_products_skeleton( $top_products = array() ){
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$position = 0;
 		$on_load = false;
 

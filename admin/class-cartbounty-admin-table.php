@@ -9,11 +9,53 @@
  * @author     Streamline.lv
  */
 
-if (!class_exists('WP_List_Table')) {
-	require_once(ABSPATH . 'wp-admin/includes/class-wp-list-table.php');
+if( !class_exists( 'WP_List_Table' ) ){
+	require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
 }
 
 class CartBounty_Table extends WP_List_Table{
+
+	 /**
+	 * @since    8.9
+	 * @access   protected
+	 * @var      CartBounty_Admin    $admin    Provides methods to control and extend the plugin's admin area.
+	 */
+	protected $admin = null;
+
+	/**
+	 * @since    8.9
+	 * @access   protected
+	 * @var      CartBounty_WordPress    $wordpress    Provides methods to control and extend the plugin's automations.
+	 */
+	protected $wordpress = null;
+
+	/**
+	 * @since 8.9
+	 * @access protected
+	 * @return CartBounty_Admin
+	 */
+	protected function admin(){
+		
+		if( $this->admin === null ){
+			$this->admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		}
+
+		return $this->admin;
+	}
+
+	/**
+	 * @since 8.9
+	 * @access protected
+	 * @return CartBounty_WordPress
+	 */
+	protected function wordpress(){
+		
+		if( $this->wordpress === null ){
+			$this->wordpress = new CartBounty_WordPress();
+		}
+
+		return $this->wordpress;
+	}
 
 	/**
 	* Constructor, we override the parent to pass our own arguments
@@ -24,10 +66,12 @@ class CartBounty_Table extends WP_List_Table{
 	function __construct(){
 		global $status, $page;
 
-		parent::__construct(array(
-			'singular' 	=> 'id',
-			'plural' 	=> 'ids',
-		));
+		parent::__construct(
+			array(
+				'singular' 	=> 'id',
+				'plural' 	=> 'ids',
+			)
+		);
 	}
 	
 	/**
@@ -87,7 +131,7 @@ class CartBounty_Table extends WP_List_Table{
 	 * @param    $item - row (key, value array)
 	 */
 	function column_name( $item ){
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$cart_status = 'all';
 		$actions = array();
 		$name_array = array();
@@ -180,7 +224,7 @@ class CartBounty_Table extends WP_List_Table{
 	 * @param    $item - row (key, value array)
 	 */
 	function column_location( $item ){
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$location_array = array();
 
 		$location_data = $admin->get_cart_location( $item['location'] );
@@ -216,7 +260,7 @@ class CartBounty_Table extends WP_List_Table{
 	 * @param    $item - row (key, value array)
 	 */
 	function column_cart_contents( $item ){
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$cart_contents = $admin->get_saved_cart_contents( $item['cart_contents'] );
 		$output = '';
 		
@@ -335,6 +379,7 @@ class CartBounty_Table extends WP_List_Table{
 	 */
 	function column_status( $item ){
 		$admin = new CartBounty_Admin(CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER);
+		$wordpress = $this->wordpress();
 		$cart_time = strtotime($item['time']);
 		$date = date_create(current_time( 'mysql', false ));
 		$current_time = strtotime(date_format($date, 'Y-m-d H:i:s'));
@@ -361,7 +406,6 @@ class CartBounty_Table extends WP_List_Table{
 			}
 
 			if($item['wp_steps_completed']){
-				$wordpress = new CartBounty_WordPress();
 				$email_history = $wordpress->display_email_history( $item['id'] ); //Getting email history of current cart
 				$status .= sprintf('<div class="status-item-container email-history"><span class="cartbounty-tooltip">%s%s</span><span class="status synced wordpress">WP</span></div>', esc_html__('Sent via WordPress', 'woo-save-abandoned-carts'), $email_history );
 			}
@@ -398,7 +442,7 @@ class CartBounty_Table extends WP_List_Table{
 	 * @return   array
 	 */
 	 function get_bulk_actions(){
-	 	$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+	 	$admin = $this->admin();
 		$actions = array(
 			'delete'	=> esc_html__( 'Delete', 'woo-save-abandoned-carts' ),
 			'pause'		=> esc_html__( 'Pause recovery', 'woo-save-abandoned-carts' ) . ' (' . esc_html__( 'Pro', 'woo-save-abandoned-carts' ) . ')',
@@ -427,7 +471,7 @@ class CartBounty_Table extends WP_List_Table{
 		if( empty( $cart_id ) ) return;
 
 		global $wpdb;
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
 		$processed_rows = 0;
 

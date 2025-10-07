@@ -10,8 +10,49 @@
  * @subpackage CartBounty - Save and recover abandoned carts for WooCommerce/includes
  * @author     Streamline.lv
  */
-
 class CartBounty_WordPress{
+
+	/**
+	 * @since    8.9
+	 * @access   protected
+	 * @var      CartBounty_Admin    $admin    Provides methods to control and extend the plugin's admin area.
+	 */
+	protected $admin = null;
+
+	/**
+	 * @since    8.9
+	 * @access   protected
+	 * @var      CartBounty_Public    $public    Provides methods to control and extend the plugin's public area.
+	 */
+	protected $public = null;
+
+	/**
+	 * @since 8.9
+	 * @access protected
+	 * @return CartBounty_Admin
+	 */
+	protected function admin(){
+		
+		if( $this->admin === null ){
+			$this->admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		}
+
+		return $this->admin;
+	}
+
+	/**
+	 * @since 8.9
+	 * @access protected
+	 * @return CartBounty_Public
+	 */
+	protected function public(){
+		
+		if( $this->public === null ){
+			$this->public = new CartBounty_Public( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		}
+
+		return $this->public;
+	}
 	
 	/**
 	* Retrieve WordPress recovery settings
@@ -125,7 +166,7 @@ class CartBounty_WordPress{
 	 */
 	private function recover_carts(){
 		global $wpdb;
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 
 		$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
 		$time = $admin->get_time_intervals();
@@ -210,7 +251,7 @@ class CartBounty_WordPress{
 	 * @param    array    	$preview_data         Automation step input data passed from frontend to allow template preview
 	 */
 	public function send_reminder( $cart, $step_nr, $test = false, $email = false, $preview_data = array() ){
-		$admin = new CartBounty_Admin(CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER);
+		$admin = $this->admin();
 		$settings = $this->get_settings();
 
 		if($test){
@@ -375,8 +416,8 @@ class CartBounty_WordPress{
      * @param    array    	$preview_data         Automation step input data passed from frontend to allow template preview
      */
 	private function get_selected_template( $cart, $step_nr, $test = false, $preview_data = array() ){
-		$public = new CartBounty_Public(CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER);
-		$admin = new CartBounty_Admin(CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER);
+		$public = $this->public();
+		$admin = $this->admin();
 		$automation_steps = get_option('cartbounty_automation_steps');
 		$step = $automation_steps[0];
 		if($test){
@@ -606,7 +647,7 @@ class CartBounty_WordPress{
      */
 	public function add_email( $cart_id, $step_nr, $current_time ){
 		global $wpdb;
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 
 		//Making sure that the email table exists or is created
 		if( !$admin->table_exists( 'email_table_exists' ) ){
@@ -669,7 +710,7 @@ class CartBounty_WordPress{
      */
 	public function get_email_history( $cart_id = false ){
 		global $wpdb;
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 
 		if( !$admin->table_exists( 'email_table_exists' ) ){
 			$this->create_email_table();
@@ -720,7 +761,7 @@ class CartBounty_WordPress{
 	 */
 	public function get_queue( $step_nr = false ) {
 		global $wpdb;
-		$admin = new CartBounty_Admin(CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER);
+		$admin = $this->admin();
 		$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
 		$time = $admin->get_time_intervals();
 		$count = 0;
@@ -913,7 +954,7 @@ class CartBounty_WordPress{
 		if(!isset($_POST['cartbounty_automation_steps'])){ //Exit in case the automation step data is not present
 			return;
 		}
-		$admin = new CartBounty_Admin(CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER);
+		$admin = $this->admin();
 		$steps = $_POST['cartbounty_automation_steps'];
 		$disabled_steps = array();
 
@@ -956,7 +997,7 @@ class CartBounty_WordPress{
 	 */
 	public static function create_email_table(){
 		global $wpdb;
-		$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$admin = $this->admin();
 		$email_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME_EMAILS;
 		$charset_collate = $wpdb->get_charset_collate();
 		$misc_settings = $admin->get_settings( 'misc_settings' );

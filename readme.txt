@@ -335,5 +335,6 @@ In addition, the Pro version allows you to select if guests from specific countr
 
 = 8.9 =
 * Added two additional reminder steps for WordPress abandoned cart recovery
+* Code refactoring and optimization
 
 [See changelog for all versions](https://raw.githubusercontent.com/Streamlinelv/woo-save-abandoned-carts/master/changelog.txt).

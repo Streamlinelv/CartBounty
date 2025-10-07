@@ -30,6 +30,69 @@ class CartBounty_Admin{
 	private $version;
 
 	/**
+	 * @since    8.9
+	 * @access   protected
+	 * @var      CartBounty_Public    $public    Provides methods to control and extend the plugin's public area.
+	 */
+	protected $public = null;
+
+	/**
+	 * @since    8.9
+	 * @access   protected
+	 * @var      CartBounty_WordPress    		$wordpress    Provides methods to control and extend the plugin's WordPress area.
+	 */
+	protected $wordpress = null;
+
+	/**
+	 * @since    8.9
+	 * @access   protected
+	 * @var      CartBounty_Reports    		$reports    Provides methods to control and extend the plugin's Reports area.
+	 */
+	protected $reports  = null;	
+
+	/**
+	 * @since 8.9
+	 * @access protected
+	 * @return CartBounty_Public
+	 */
+	protected function public(){
+		
+		if( $this->public === null ){
+			$this->public = new CartBounty_Public( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		}
+
+		return $this->public;
+	}
+
+	/**
+	 * @since 8.9
+	 * @access protected
+	 * @return CartBounty_WordPress
+	 */
+	protected function wordpress(){
+		
+		if( $this->wordpress === null ){
+			$this->wordpress = new CartBounty_WordPress();
+		}
+
+		return $this->wordpress;
+	}
+
+	/**
+	 * @since 8.9
+	 * @access protected
+	 * @return CartBounty_Reports
+	 */
+	protected function reports(){
+		
+		if( $this->reports === null ){
+			$this->reports = new CartBounty_Reports();
+		}
+
+		return $this->reports;
+	}
+
+	/**
 	 * Initialize the class and set its properties.
 	 *
 	 * @since    1.0
@@ -50,13 +113,12 @@ class CartBounty_Admin{
 		global $cartbounty_admin_menu_page;
 		$screen = get_current_screen();
 
-		if(!is_object($screen)){
-			return;
-		}
+		if( !is_object( $screen ) ) return;
 
 		wp_enqueue_style( $this->plugin_name . '-global', plugin_dir_url( __FILE__ ) . 'css/cartbounty-admin-global.css', $this->version ); //Global styles
 		wp_style_add_data( $this->plugin_name . '-global', 'rtl', 'replace' );
-		if($screen->id == $cartbounty_admin_menu_page ){
+		
+		if( $screen->id == $cartbounty_admin_menu_page ){
 			wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/cartbounty-admin.css', array('wp-color-picker'), $this->version );
 			wp_style_add_data( $this->plugin_name, 'rtl', 'replace' );
 		}
@@ -87,7 +149,7 @@ class CartBounty_Admin{
 				wp_enqueue_script( $this->plugin_name . '-reports', plugin_dir_url( __FILE__ ) . 'js/cartbounty-reports.js', array( 'jquery' ), $this->version, false );
 
 				//Adding extra data related with daypicker calendar
-				$reports = new CartBounty_Reports();
+				$reports = $this->reports();
 				$data['daypicker'] = $reports->prepare_daypicker_data();
 				$data['active_charts'] = $reports->get_active_reports( 'charts' );
 				$data['chart_type'] = $reports->get_selected_chart_type();
@@ -279,7 +341,7 @@ class CartBounty_Admin{
 		global $cartbounty_admin_menu_page;
 		$screen = get_current_screen();
 
-		$wordpress = new CartBounty_WordPress();
+		$wordpress = $this->wordpress();
 		$status = new CartBounty_System_Status(CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER);
 
 		// Check if we are on CartBounty page
@@ -395,7 +457,7 @@ class CartBounty_Admin{
 				<?php elseif( $tab == 'dashboard' ): //Dashboard tab ?>
 
 					<?php
-					$reports = new CartBounty_Reports();
+					$reports = $this->reports();
 					$nonce = wp_create_nonce('cartbounty_report_period');
 					?>
 
@@ -1239,7 +1301,7 @@ class CartBounty_Admin{
 				$name = esc_html__( 'Send email after', 'woo-save-abandoned-carts' );
 				$zero_name = '';
 				$miliseconds = array( 300000, 600000, 900000, 1200000, 1500000, 1800000, 2400000, 3000000, 3600000, 7200000, 10800000, 14400000, 18000000, 21600000, 25200000, 28800000, 32400000, 36000000, 39600000, 43200000, 64800000, 86400000, 172800000, 259200000, 345600000, 432000000, 518400000, 604800000, 1209600000, 1814400000, 2419200000, 4838400000, 7257600000 );
-				$wordpress = new CartBounty_WordPress();
+				$wordpress = $this->wordpress();
 				$selected_interval = $wordpress->get_defaults( 'interval', $automation );
 
 				if( isset( $option_value[$automation] ) ){
@@ -1282,7 +1344,7 @@ class CartBounty_Admin{
 
 		if($tab == 'recovery'){
 
-			$wordpress = new CartBounty_WordPress();
+			$wordpress = $this->wordpress();
 
 			$sections = array(
 				'wordpress'	=> array(
@@ -1403,7 +1465,7 @@ class CartBounty_Admin{
 						global $wpdb;
 						settings_fields( 'cartbounty-wordpress-settings' );
 						do_settings_sections( 'cartbounty-wordpress-settings' );
-						$wordpress = new CartBounty_WordPress();
+						$wordpress = $this->wordpress();
 						$settings = $wordpress->get_settings();
 						$automation_steps = get_option('cartbounty_automation_steps');
 					?>
@@ -2514,7 +2576,7 @@ class CartBounty_Admin{
 
 		if( $this->action_scheduler_enabled() ) return; //Do not display WP Cron related messages in case WooCommerce Action scheduler is enabled
 
-		$wordpress = new CartBounty_WordPress();
+		$wordpress = $this->wordpress();
 
 		if( $wordpress->automation_enabled() ){ //Check if we have connected to WordPress automation
 			$missing_hooks = array();
@@ -2702,7 +2764,7 @@ class CartBounty_Admin{
 	 */
 	private function prepare_email( $type ){
 		global $wpdb;
-		$public = new CartBounty_Public(CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER);
+		$public = $this->public();
 		$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
 		$time_intervals = $this->get_time_intervals();
 		$time = $time_intervals['cart_abandoned'];
@@ -3002,7 +3064,7 @@ class CartBounty_Admin{
 			$review_bubble = $this->draw_bubble( 'review' );
 			$upgrade_bubble = $this->draw_bubble( 'upgrade' );
 			echo $content = $this->prepare_notice( 'review' );
-			echo $content = $this->prepare_notice( 'upgrade' );
+			echo $content = $this->prepare_notice( 'upgrade', false, 'bubble_upgrade' );
 			
 			if( $upgrade_bubble ){ //If we should display this bubble
 				echo $upgrade_bubble;
@@ -3183,7 +3245,7 @@ class CartBounty_Admin{
 		global $wpdb;
 		$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
 		$time = $this->get_time_intervals();
-		$public = new CartBounty_Public(CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER);
+		$public = $this->public();
 		$where_sentence = $this->get_where_sentence( 'anonymous' );
 
 		//Deleting anonymous rows with empty cart contents from database first
@@ -3256,7 +3318,7 @@ class CartBounty_Admin{
 
 		global $wpdb;
 		$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
-		$public = new CartBounty_Public(CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER);
+		$public = $this->public();
 		$cart = $public->read_cart();
 
 		if( !isset( $cart['session_id'] ) ){
@@ -3302,7 +3364,7 @@ class CartBounty_Admin{
 
 		if( !$user_id ) return; //Exit in case we do not have user's ID value
 		
-		$public = new CartBounty_Public(CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER);
+		$public = $this->public();
 		$cart = array(
 			'session_id' 	=> $user_id,
 			'cart_contents' => '',
@@ -3423,7 +3485,7 @@ class CartBounty_Admin{
 
 		//If we have received an Unsubscribe request - stop restoring cart and unsubscribe user instead
 		if( isset( $_GET['cartbounty-unsubscribe'] ) ){
-			$wordpress = new CartBounty_WordPress();
+			$wordpress = $this->wordpress();
 			$wordpress->unsubscribe_user( $id, $step_nr );
 			wp_die( esc_html__('You have successfully unsubscribed from further emails about your shopping cart.', 'woo-save-abandoned-carts'), esc_html__( 'Successfully unsubscribed', 'woo-save-abandoned-carts'), $args = array( 'link_url' => get_site_url(), 'link_text' => esc_html__( 'Return to store', 'woo-save-abandoned-carts') ) );
 		}
@@ -3599,7 +3661,7 @@ class CartBounty_Admin{
 		$consent = false;
 
 		if( !$saved_cart ){
-			$public = new CartBounty_Public( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+			$public = $this->public();
 			$saved_cart = $public->get_saved_cart();
 		}
 		
@@ -3875,7 +3937,7 @@ class CartBounty_Admin{
 	    }
 
 	    if($data['integration'] == 'wordpress'){
-	    	$wordpress = new CartBounty_WordPress();
+	    	$wordpress = $this->wordpress();
 			$wordpress->auto_send();
 	    }
 		wp_send_json_success( esc_html__("Sync finished", 'woo-save-abandoned-carts' ));
@@ -3999,7 +4061,7 @@ class CartBounty_Admin{
 			if( $type == $this->get_cart_type('recovered') ){ //If order should be marked as recovered
 				//Increase total
 				$data[] = 'mail_sent = 0';
-				$public = new CartBounty_Public(CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER);
+				$public = $this->public();
 				$public->increase_recovered_cart_count();
 			}
 
@@ -4034,7 +4096,7 @@ class CartBounty_Admin{
 		if( !WC()->session ) return; //Exit if WooCommerce session does not exist
 
 		global $wpdb;
-		$public = new CartBounty_Public( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
+		$public = $this->public();
 		$recovered = $this->get_cart_type( 'recovered' );
 		$ordered = $this->get_cart_type( 'ordered' );
 		$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
@@ -4490,7 +4552,7 @@ class CartBounty_Admin{
 		if( current_filter() == 'cartbounty_admin_email_footer_end' ){ //If the function triggered inside admin notification email
 			$tag = 'admin_notification_email';
 		}
-		$public = new CartBounty_Public(CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER);
+		$public = $this->public();
 		$image = $public->get_plugin_url() . '/public/assets/sent-via-cartbounty.png';
 		$output = '';
 		$output .= '<table cellpadding="0" cellspacing="0" border="0" align="center" style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
@@ -5127,7 +5189,7 @@ class CartBounty_Admin{
 	function should_display_notice( $notice_type ){
 		$display = false;
 		$recoverable_cart_count = $this->total_cartbounty_recoverable_cart_count();
-		$wordpress = new CartBounty_WordPress();
+		$wordpress = $this->wordpress();
 
 		switch( $notice_type ){
 			
