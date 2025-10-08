@@ -12,7 +12,7 @@
 
  * @package    CartBounty - Save and recover abandoned carts for WooCommerce/Templates
  * @author     Streamline.lv
- * @version    8.3
+ * @version    8.9
  */
 
 if (!defined( 'ABSPATH' )){ //Don't allow direct access
@@ -35,6 +35,10 @@ if (!defined( 'ABSPATH' )){ //Don't allow direct access
 		}
 
 		@media only screen and (max-width: 650px) {
+			.cartbounty-email-image{
+				width: 100% !important;
+			}
+
 			.cartbounty-email-footer,
 			.cartbounty-email-unsubscribe{
 				font-size: 14px !important;
@@ -56,6 +60,19 @@ if (!defined( 'ABSPATH' )){ //Don't allow direct access
 		<tr>
 			<td style="padding: 30px 10px 20px; margin: 0; width: 100%; height: 100%;">
 				<table cellpadding="0" cellspacing="0" border="0" align="center" style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
+					<?php if( $args['include_image'] ):?>
+					<tr>
+						<td valign="top">
+							<table cellpadding="0" cellspacing="0" border="0" align="center" style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; border-top-left-radius: 6px;border-top-right-radius: 6px; border-bottom-right-radius: 0; border-bottom-left-radius: 0;">
+								<tr>
+									<td valign="top" width="650">
+										<img class="cartbounty-email-image" src="<?php echo esc_url( $args['main_image'] ); ?>" alt="<?php echo esc_attr( get_option( 'blogname' ) );?>" title="<?php echo esc_attr( get_option( 'blogname' ) );?>" width="650" height="auto" style="display:block; -ms-interpolation-mode: bicubic; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; border: none 0;" />
+									</td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+					<?php endif; ?>
 					<tr>
 						<td valign="top" style="background-color: <?php echo esc_attr( $args['main_color'] ); ?>; padding: 50px 0; border-bottom: 2px solid <?php echo esc_attr( $args['border_color'] );?>;">
 							<table cellpadding="0" cellspacing="0" border="0" align="center" style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">

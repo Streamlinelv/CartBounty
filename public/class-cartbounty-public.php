@@ -1417,15 +1417,15 @@ class CartBounty_Public{
 		}
 
 		$args = array(
-			'image_url' => $image_url,
-			'heading' => $heading,
-			'content' => $content,
-			'main_color' => $main_color,
-			'inverse_color' => $inverse_color,
-			'consent_enabled' => $consent_enabled,
-			'tools_consent' => $tools_consent,
-			'title' => esc_html__( 'You were not leaving your cart just like that, right?', 'woo-save-abandoned-carts' ),
-			'alt' => esc_html__( 'You were not leaving your cart just like that, right?', 'woo-save-abandoned-carts' ),
+			'image_url' 		=> $image_url,
+			'heading' 			=> $heading,
+			'content' 			=> $content,
+			'main_color' 		=> $main_color,
+			'inverse_color' 	=> $inverse_color,
+			'consent_enabled' 	=> $consent_enabled,
+			'tools_consent' 	=> $tools_consent,
+			'title' 			=> esc_html__( 'You were not leaving your cart just like that, right?', 'woo-save-abandoned-carts' ),
+			'alt' 				=> esc_html__( 'You were not leaving your cart just like that, right?', 'woo-save-abandoned-carts' ),
 		);
 
 		return $this->get_template( 'cartbounty-exit-intent.php', $args );

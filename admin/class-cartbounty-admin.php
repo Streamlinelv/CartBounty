@@ -352,9 +352,9 @@ class CartBounty_Admin{
 			//Outputing how many rows we would like to see on the page
 			$option = 'per_page';
 			$args = array(
-				'label' => esc_html__('Carts per page:', 'woo-save-abandoned-carts'),
-				'default' => 10,
-				'option' => 'cartbounty_carts_per_page'
+				'label' 	=> esc_html__('Carts per page:', 'woo-save-abandoned-carts'),
+				'default' 	=> 10,
+				'option' 	=> 'cartbounty_carts_per_page'
 			);
 
 			//Adding screen options only on Abandoned cart page
@@ -1510,6 +1510,8 @@ class CartBounty_Admin{
 											$button_color = ( isset($step->button_color) ) ? $step->button_color : false;
 											$text_color = ( isset($step->text_color) ) ? $step->text_color : false;
 											$background_color = ( isset($step->background_color) ) ? $step->background_color : false;
+											$include_image = ( isset($step->include_image) ) ? $step->include_image : false;
+											$main_image = ( isset($step->main_image) ) ? $step->main_image : false;
 											$time_interval_name = $this->get_interval_data( 'cartbounty_automation_steps', $key, $just_selected_value = true );
 											$preview_email_nonce = wp_create_nonce( 'preview_email' );
 											$test_email_nonce = wp_create_nonce( 'test_email' );
@@ -1656,7 +1658,7 @@ class CartBounty_Admin{
 																		 esc_html__( 'Look here to see advanced %stemplate customization%s options.', 'woo-save-abandoned-carts'), '<a href="'. esc_url( $this->get_trackable_link( CARTBOUNTY_LICENSE_SERVER_URL . 'templates', 'wp_template_customization' ) ) .'" target="_blank">', '</a>');?>
 															</p>
 														</div>
-														<div class="cartbounty-settings-column cartbounty-col-sm-12 cartbounty-col-md-8 cartbounty-col-lg-9">
+														<div class="cartbounty-settings-column cartbounty-col-sm-12 cartbounty-col-md-8 cartbounty-col-lg-9<?php if($include_image){ echo ' cartbounty-checked-parent'; }?>">
 															<div class="cartbounty-settings-group">
 																<h4><?php esc_html_e('Template', 'woo-save-abandoned-carts'); ?></h4>
 																<div class="cartbounty-flex-container">
@@ -1726,15 +1728,35 @@ class CartBounty_Admin{
 																	<input id="cartbounty-template-background-color-<?php echo esc_attr( $key ); ?>" type="text" name="cartbounty_automation_steps[<?php echo esc_attr( $key ); ?>][background_color]" class="cartbounty-color-picker cartbounty-text" value="<?php echo esc_attr( $background_color ); ?>" <?php echo $this->disable_field(); ?> autocomplete="off" />
 																</div>
 															</div>
-															<div class="cartbounty-settings-group cartbounty-toggle">
-																<label for="cartbounty-automation-include-image" class="cartbounty-switch cartbounty-unavailable">
-																	<input id="cartbounty-automation-include-image-<?php echo esc_attr( $key ); ?>" class="cartbounty-checkbox" type="checkbox" disabled autocomplete="off" />
+															<div class="cartbounty-settings-group cartbounty-toggle <?php if($include_image){ echo ' cartbounty-checked'; }?>">
+																<label for="cartbounty-automation-include-image-<?php echo esc_attr( $key ); ?>" class="cartbounty-switch cartbounty-control-visibility">
+																	<input id="cartbounty-automation-include-image-<?php echo esc_attr( $key ); ?>" class="cartbounty-checkbox" type="checkbox" name="cartbounty_automation_steps[<?php echo esc_attr( $key ); ?>][include_image]" value="1" <?php echo $this->disable_field(); ?> <?php echo checked( 1, $include_image, false ); ?> autocomplete="off" />
 																	<span class="cartbounty-slider round"></span>
 																</label>
-																<label for="cartbounty-automation-include-image" class="cartbounty-unavailable"><?php esc_html_e('Include image', 'woo-save-abandoned-carts'); ?></label>
+																<label for="cartbounty-automation-include-image-<?php echo esc_attr( $key ); ?>"><?php esc_html_e('Include image', 'woo-save-abandoned-carts'); ?></label>
+															</div>
+															<div class="cartbounty-settings-group cartbounty-hidden">
+																<?php
+																	if(!did_action('wp_enqueue_media')){
+																		wp_enqueue_media();
+																	}
+																	$image = wp_get_attachment_image_src( $main_image );
+																?>
+																<h4><?php esc_html_e('Custom image', 'woo-save-abandoned-carts'); ?></h4>
 																<p class='cartbounty-additional-information'>
-																	<i class='cartbounty-hidden cartbounty-unavailable-notice'><?php echo $this->display_unavailable_notice( 'wp_include_image' ); ?></i>
+																	<?php esc_html_e('Recommended dimensions:', 'woo-save-abandoned-carts'); ?> 900 x 300 px.
 																</p>
+																<div class="cartbounty-action-container">
+																	<p id="cartbounty-upload-custom-image-<?php echo esc_attr( $key ); ?>" class="cartbounty-upload-image" data-automation="<?php echo esc_attr( $key ); ?>">
+																		<?php if($image):?>
+																			<img src="<?php echo esc_url( $image[0] ); ?>" />
+																		<?php else: ?>
+																			<input type="button" value="<?php esc_attr_e('Add a custom image', 'woo-save-abandoned-carts'); ?>" class="cartbounty-button button-secondary button" <?php echo $this->disable_field(); ?> />
+																		<?php endif;?>
+																	</p>
+																	<a href="#" id="cartbounty-remove-custom-image-<?php echo esc_attr( $key ); ?>" class="cartbounty-remove-image" data-automation="<?php echo esc_attr( $key ); ?>" <?php if(!$image){echo 'style="display:none"';}?>></a>
+																</div>
+																<input id="cartbounty-custom-image-<?php echo esc_attr( $key ); ?>" type="hidden" name="cartbounty_automation_steps[<?php echo esc_attr( $key ); ?>][main_image]" value="<?php if($main_image){echo esc_attr( $main_image );}?>" <?php echo $this->disable_field(); ?> autocomplete="off" />
 															</div>
 														</div>
 													</div>
@@ -2560,18 +2582,18 @@ class CartBounty_Admin{
 		$interval = $notification_frequency['selected'];
 
 		$intervals['cartbounty_notification_sendout_interval'] = array( //Defining cron Interval for sending out email notifications about abandoned carts
-			'interval' => $interval / 1000,
-			'display' => $interval_name[$interval]
+			'interval' 	=> $interval / 1000,
+			'display' 	=> $interval_name[$interval]
 		);
 
 		$intervals['cartbounty_sync_interval'] = array( //Defining cron Interval for sending out abandoned carts
-			'interval' => 5 * 60,
-			'display' => 'Every 5 minutes'
+			'interval' 	=> 5 * 60,
+			'display' 	=> 'Every 5 minutes'
 		);
 
 		$intervals['cartbounty_twice_daily_interval'] = array(
-			'interval' => 12 * 60 * 60,
-			'display' => 'Twice Daily'
+			'interval' 	=> 12 * 60 * 60,
+			'display' 	=> 'Twice Daily'
 		);
 
 		return $intervals;

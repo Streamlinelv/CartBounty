@@ -51,6 +51,7 @@
 				},
 				multiple: false
 			}).on('select', function(){ //It also has "open" and "close" events
+				var automation = button.data('automation'); //Number ID that has been triggered
 				var attachment = custom_uploader.state().get('selection').first().toJSON();
 				var image_url = attachment.url;
 
@@ -59,9 +60,13 @@
  					image_url = thumbnail;
  				}
 				button.html('<img src="' + image_url + '">');
-				var input_field = jQuery('#cartbounty-custom-image');
-				var remove_button = jQuery('#cartbounty-remove-custom-image');
-				
+				if(typeof automation !== 'undefined'){ //If multiple items exist on the page
+					var input_field = jQuery('#cartbounty-custom-image-' + automation);
+					var remove_button = jQuery('#cartbounty-remove-custom-image-' + automation);
+				}else{ //In case of a single item on page
+					var input_field = jQuery('#cartbounty-custom-image');
+					var remove_button = jQuery('#cartbounty-remove-custom-image');
+				}
 				input_field.val(attachment.id);
 				remove_button.show();
 
@@ -71,8 +76,15 @@
 		function removeCustomImage(e){ //Removing Custom image
 			e.preventDefault();
 			var button = jQuery(this).hide();
-			var input_field = jQuery('#cartbounty-custom-image');
-			var add_button = jQuery('#cartbounty-upload-custom-image');
+			var automation = button.data('automation'); //Number ID that has been triggered
+
+			if(typeof automation !== 'undefined'){ //If multiple items exist on the page
+				var input_field = jQuery('#cartbounty-custom-image-' + automation);
+				var add_button = jQuery('#cartbounty-upload-custom-image-' + automation);
+			}else{ //In case of a single item on page
+				var input_field = jQuery('#cartbounty-custom-image');
+				var add_button = jQuery('#cartbounty-upload-custom-image');
+			}
 
 			input_field.val('');
 			add_button.html('<input type="button" class="cartbounty-button button-secondary button" value="Add a custom image">');
@@ -90,7 +102,9 @@
 				main_color			: jQuery('#cartbounty-template-main-color-' + automation).val(),
 				button_color		: jQuery('#cartbounty-template-button-color-' + automation).val(),
 				text_color			: jQuery('#cartbounty-template-text-color-' + automation).val(),
-				background_color	: jQuery('#cartbounty-template-background-color-' + automation).val()
+				background_color	: jQuery('#cartbounty-template-background-color-' + automation).val(),
+				include_image		: jQuery('#cartbounty-automation-include-image-' + automation).prop('checked'),
+				main_image			: jQuery('#cartbounty-custom-image-' + automation).val(),
 			};
 
 			return data;

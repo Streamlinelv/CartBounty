@@ -374,6 +374,13 @@ class CartBounty_WordPress{
 	* @return   array
 	*/
 	public function get_preview_data( $data ){
+		$include_image = false;
+		if(isset($data['include_image'])){
+			if($data['include_image'] == 'true'){
+				$include_image = true;
+			}
+		}
+
 		$preview_data = array(
 			'subject' 			=> isset($data['subject']) ? $data['subject'] : '',
 			'heading' 			=> isset($data['main_title']) ? $data['main_title'] : '',
@@ -381,7 +388,9 @@ class CartBounty_WordPress{
 			'main_color' 		=> isset($data['main_color']) ? $data['main_color'] : '',
 			'button_color'		=> isset($data['button_color']) ? $data['button_color'] : '',
 			'text_color' 		=> isset($data['text_color']) ? $data['text_color'] : '',
-			'background_color' 	=> isset($data['background_color']) ? $data['background_color'] : ''
+			'background_color' 	=> isset($data['background_color']) ? $data['background_color'] : '',
+			'include_image' 	=> $include_image,
+			'main_image' 		=> isset($data['main_image']) ? $data['main_image'] : '',
 		);
 
 		return $preview_data;
@@ -431,6 +440,8 @@ class CartBounty_WordPress{
 		$background_color = '#f2f2f2';
 		$footer_color = '#353535';
 		$border_color = '#e9e8e8';
+		$include_image = false;
+		$main_image = $public->get_plugin_url() . '/public/assets/email-header-image.png';
 		$recovery_link = wc_get_checkout_url();
 		$unsubscribe_link = '';
 		$heading = $this->get_defaults( 'heading', $step_nr );
@@ -456,6 +467,20 @@ class CartBounty_WordPress{
 			if(!empty($step['background_color'])){
 				$background_color = $step['background_color'];
 				$footer_color = $public->invert_color($background_color);
+			}
+		}
+		if(isset($step['include_image'])){
+			if(!empty($step['include_image'])){
+				$include_image = $step['include_image'];
+			}
+		}
+		if(isset($step['main_image'])){
+			if(!empty($step['main_image'])){
+				$image_id = $step['main_image'];
+				$image = wp_get_attachment_image_src( $image_id, 'full' );
+				if(is_array($image)){
+					$main_image = $image[0];
+				}
 			}
 		}
 		if(isset($step['heading'])){
@@ -510,19 +535,21 @@ class CartBounty_WordPress{
 		$template_name = 'cartbounty-email-light.php';
 
 		$args = array(
-			'main_color' => $main_color,
-			'button_color' => $button_color,
-			'text_color' => $text_color,
-			'background_color' => $background_color,
-			'footer_color' => $footer_color,
-			'border_color' => $border_color,
-			'heading' => $heading,
-			'content' => $content,
-			'store_address' => $store_address,
-			'recovery_link' => $recovery_link,
-			'unsubscribe_link' => $unsubscribe_link,
-			'current_year' => date('Y'),
-			'test' => $test
+			'main_color' 		=> $main_color,
+			'button_color' 		=> $button_color,
+			'text_color' 		=> $text_color,
+			'background_color' 	=> $background_color,
+			'footer_color' 		=> $footer_color,
+			'border_color' 		=> $border_color,
+			'include_image'		=> $include_image,
+			'main_image'		=> $main_image,
+			'heading' 			=> $heading,
+			'content' 			=> $content,
+			'store_address' 	=> $store_address,
+			'recovery_link' 	=> $recovery_link,
+			'unsubscribe_link' 	=> $unsubscribe_link,
+			'current_year' 		=> date('Y'),
+			'test' 				=> $test
 		);
 
 		ob_start();

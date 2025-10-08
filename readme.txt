@@ -336,6 +336,7 @@ In addition, the Pro version allows you to select if guests from specific countr
 
 = 8.9 =
 * Added two additional reminder steps for WordPress abandoned cart recovery
+* Added ability to include header image inside WordPress reminder emails
 * Moved time storage from local timezone to UTC to improve accuracy and cross-system consistency
 * Code refactoring and optimization
 
