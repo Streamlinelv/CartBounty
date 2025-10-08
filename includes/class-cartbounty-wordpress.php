@@ -428,7 +428,7 @@ class CartBounty_WordPress{
 		$public = $this->public();
 		$admin = $this->admin();
 		$automation_steps = get_option('cartbounty_automation_steps');
-		$step = $automation_steps[0];
+		$step = $automation_steps[$step_nr];
 		if($test){
 			$step = $preview_data;
 		}
@@ -526,7 +526,6 @@ class CartBounty_WordPress{
 
 		if(isset($cart)){ //If we have a cart
 			if(!empty($cart)){
-				$step_nr = 0;
 				$unsubscribe_link = apply_filters( 'cartbounty_automation_unsubscribe_url', $this->get_unsubscribe_url( $cart->email, $cart->session_id, $cart->id ), $step_nr );
 				$recovery_link = $admin->create_cart_url( $cart->email, $cart->session_id, $cart->id );
 			}
