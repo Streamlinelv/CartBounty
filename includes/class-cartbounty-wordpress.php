@@ -147,7 +147,7 @@ class CartBounty_WordPress{
 	 *
 	 * @since    7.0
 	 * @return   string
-     * @param    boolean    $enabled    		  Wheather automation has been enabled or not
+     * @param    boolean    $enabled    		  Whether automation has been enabled or not
 	 */
 	public function display_automation_status( $enabled ){
 		$status = sprintf( '<span class="status inactive">%s</span>', esc_html__( 'Disabled', 'woo-save-abandoned-carts' ) );
@@ -177,7 +177,7 @@ class CartBounty_WordPress{
 		}
 
 		//Retrieving all abandoned carts that are eligible for email recovery
-		//Excluding finished automations, unsubscried carts
+		//Excluding finished automations, unsubscribed carts
 		$carts = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT id, email, session_id, time, wp_steps_completed, wp_last_sent
@@ -246,7 +246,7 @@ class CartBounty_WordPress{
 	 * @since    7.0
 	 * @param    object     $cart    		  	  Cart data
 	 * @param    integer    $step_nr              Automation step number
-	 * @param    boolean    $test                 Wheather this is a test email or not
+	 * @param    boolean    $test                 Whether this is a test email or not
 	 * @param    string     $email                Email that is used for sending a test email
 	 * @param    array    	$preview_data         Automation step input data passed from frontend to allow template preview
 	 */

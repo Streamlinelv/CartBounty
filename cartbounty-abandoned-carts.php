@@ -29,7 +29,7 @@ if (!defined('CARTBOUNTY_TABLE_NAME')) define( 'CARTBOUNTY_TABLE_NAME', 'cartbou
 if (!defined('CARTBOUNTY_LICENSE_SERVER_URL')) define('CARTBOUNTY_LICENSE_SERVER_URL', 'https://www.cartbounty.com/' );
 if (!defined('CARTBOUNTY_REVIEW_LINK')) define('CARTBOUNTY_REVIEW_LINK', 'https://wordpress.org/support/plugin/woo-save-abandoned-carts/reviews/#new-post' );
 if (!defined('CARTBOUNTY_TEXT_DOMAIN')) define( 'CARTBOUNTY_TEXT_DOMAIN', 'woo-save-abandoned-carts' ); //No longer used since v6.1.3. Will be removed in future releases
-if (!defined('CARTBOUNTY_ABREVIATION')) define( 'CARTBOUNTY_ABREVIATION', 'CartBounty' );
+if (!defined('CARTBOUNTY_ABBREVIATION')) define( 'CARTBOUNTY_ABBREVIATION', 'CartBounty' );
 if (!defined('CARTBOUNTY_NEW_NOTICE')) define( 'CARTBOUNTY_NEW_NOTICE', 240 ); //Defining time in minutes how long New status is shown in the table
 if (!defined('CARTBOUNTY_MAX_SYNC_PERIOD')) define( 'CARTBOUNTY_MAX_SYNC_PERIOD', 100 ); //Defining maximum period in days that is up for recovery. We do not want to remind about very old abandoned carts
 if (!defined('CARTBOUNTY_MAX_STEPS')) define( 'CARTBOUNTY_MAX_STEPS', 3 ); //Temporary block since version 8.9. Will be removed in future versions

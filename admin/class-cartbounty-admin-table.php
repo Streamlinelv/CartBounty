@@ -266,7 +266,7 @@ class CartBounty_Table extends WP_List_Table{
 		
 		if( $cart_contents ){
 
-			if( $admin->get_settings( 'settings', 'hide_images' ) ){ //Outputing Cart contents as a list
+			if( $admin->get_settings( 'settings', 'hide_images' ) ){ //Outputting Cart contents as a list
 				$output = '<ol class="cartbounty-product-list">';
 
 				foreach( $cart_contents as $product ){

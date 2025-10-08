@@ -113,7 +113,7 @@ class CartBounty_System_Status{
 		}
 
 		if( isset( $main_settings['notification_frequency'] ) ){
-			$interval_output = $main_settings['notification_frequency'] . ' ('. esc_html( $admin->convert_miliseconds_to_minutes( $main_settings['notification_frequency'] ) ) . ')';
+			$interval_output = $main_settings['notification_frequency'] . ' ('. esc_html( $admin->convert_milliseconds_to_minutes( $main_settings['notification_frequency'] ) ) . ')';
 			$settings[] = 'Notification frequency: ' . $interval_output;
 		}
 
@@ -221,7 +221,7 @@ class CartBounty_System_Status{
 							<td class="section-title"></td>
 						</tr>
 						<tr>
-							<td class="section-title">### '. CARTBOUNTY_ABREVIATION .' ###</td>
+							<td class="section-title">### '. CARTBOUNTY_ABBREVIATION .' ###</td>
 						</tr>';
 					foreach( $cartbounty_settings as $key => $value ){
 						$output .= '
