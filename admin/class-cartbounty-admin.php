@@ -260,7 +260,7 @@ class CartBounty_Admin{
 					'time_bubble_steps_displayed' 		=> '',
 					'times_review_declined' 			=> 0,
 					'email_table_exists' 				=> false,
-					'converted_minutes_to_miliseconds' 	=> false,
+					'converted_minutes_to_milliseconds' => false,
 				);
 
 				break;

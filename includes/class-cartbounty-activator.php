@@ -90,13 +90,23 @@ class CartBounty_Activator{
 			$admin = new CartBounty_Admin( CARTBOUNTY_PLUGIN_NAME_SLUG, CARTBOUNTY_VERSION_NUMBER );
 			$misc_settings = $admin->get_settings( 'misc_settings' );
 
+			//Since version 8.9
+			//This code will be removed in later versions
+			//Updating typo error
+			if( isset( $misc_settings['converted_minutes_to_miliseconds'] ) ){
+				$misc_settings['converted_minutes_to_milliseconds'] = true;
+				unset( $misc_settings['converted_minutes_to_miliseconds'] );
+				update_option( 'cartbounty_misc_settings', $misc_settings );
+				return;
+			}
+
 			if( CARTBOUNTY_VERSION_NUMBER == $misc_settings['version_number'] || empty( $misc_settings['version_number'] ) ){ //If this is a fresh install or plugin activation
-				$misc_settings['converted_minutes_to_miliseconds'] = true;
+				$misc_settings['converted_minutes_to_milliseconds'] = true;
 				update_option( 'cartbounty_misc_settings', $misc_settings ); //setting this variable as we do not require to convert minutes to milliseconds for new installs or activations
 				return;
 			}
 
-			if( $misc_settings['converted_minutes_to_miliseconds'] ) return;
+			if( $misc_settings['converted_minutes_to_milliseconds'] ) return;
 
 			$wordpress_steps = get_option( 'cartbounty_automation_steps' );
 			$notification_frequency = get_option( 'cartbounty_notification_frequency' );
@@ -124,7 +134,7 @@ class CartBounty_Activator{
 				}
 			}
 
-			$misc_settings['converted_minutes_to_miliseconds'] = true;
+			$misc_settings['converted_minutes_to_milliseconds'] = true;
 			update_option( 'cartbounty_misc_settings', $misc_settings );
 
 			/**
@@ -234,7 +244,7 @@ class CartBounty_Activator{
 					'time_bubble_steps_displayed' 		=> get_option( 'cartbounty_last_time_bubble_steps_displayed' ),
 					'times_review_declined' 			=> get_option( 'cartbounty_times_review_declined' ),
 					'email_table_exists' 				=> get_option( 'cartbounty_email_table_exists' ),
-					'converted_minutes_to_miliseconds' 	=> get_option( 'cartbounty_converted_minutes_to_miliseconds' ),
+					'converted_minutes_to_milliseconds' 	=> get_option( 'cartbounty_converted_minutes_to_miliseconds' ),
 				);
 
 				update_option( 'cartbounty_misc_settings', $existing_settings );
