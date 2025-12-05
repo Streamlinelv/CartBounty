@@ -310,34 +310,40 @@ class CartBounty_WordPress{
 	* @return   HTML
 	*/
 	public function send_test(){
-		if ( check_ajax_referer( 'test_email', 'nonce', false ) == false ) { //If the request does not include our nonce security check, stop executing function
-			wp_send_json_error(esc_html__( 'Looks like you are not allowed to do this.', 'woo-save-abandoned-carts' ));
-		}
+		$admin = $this->admin();
 		$step_nr = false;
-		if(isset($_POST['step'])){
+		$preview_data = array();
+		$email = false;
+
+		if( check_ajax_referer( 'test_email', 'nonce', false ) == false ){ //If the request does not include our nonce security check, stop executing function
+			wp_send_json_error( $admin->prepare_response_message() );
+		}
+
+		if( isset( $_POST['step'] ) ){
 			$step_nr = $_POST['step'];
 		}
-		$preview_data = array();
-		if(isset($_POST)){
-			$preview_data = $this->get_preview_data($_POST);
+
+		if( isset( $_POST ) ){
+			$preview_data = $this->get_preview_data( $_POST );
 		}
 
-		$email = false;
-		$direction = is_rtl() ? 'rtl' : 'ltr';
-
-		if(isset($_POST['email'])){ //If we have received email field
-			if(!empty($_POST['email'])){ //If email field is not empty
-				if(is_email($_POST['email'])){ //If email is valid
+		if( isset( $_POST['email'] ) ){ //If we have received email field
+			
+			if( !empty( $_POST['email'] ) ){ //If email field is not empty
+				
+				if( is_email( $_POST['email'] ) ){ //If email is valid
 					$email = $_POST['email'];
+
 				}else{ //If email is invalid
-					wp_send_json_error('<span class="license-status license-inactive fadeOutSlow" dir="'. $direction .'"><i class="license-status-icon"><img src="'. esc_url( plugin_dir_url( __DIR__ ) ) . 'admin/assets/invalid-icon.svg" /></i>'. esc_html__( 'Please enter a valid email', 'woo-save-abandoned-carts' ) .'</span>');
+					wp_send_json_error( $admin->prepare_response_message( __( 'Please enter a valid email', 'woo-save-abandoned-carts' ) ) );
 				}
 			}else{ //If email input field is empty, sending it to default Administrator email
 				$email = get_option( 'admin_email' );
 			}
 		}
+
 		$this->send_reminder( $cart = false, $step_nr, $test = true, $email, $preview_data );
-		wp_send_json_success('<span class="license-status license-active fadeOutSlow" dir="'. $direction .'"><i class="license-status-icon"><img src="'. esc_url( plugin_dir_url( __DIR__ ) ) . 'admin/assets/active-icon.svg" /></i>'. esc_html__( 'Email successfully sent', 'woo-save-abandoned-carts' ) .'</span>');
+		wp_send_json_success( $admin->prepare_response_message( __( 'Email successfully sent', 'woo-save-abandoned-carts' ), 'success' ) );
 	}
 
 	/**
@@ -401,7 +407,7 @@ class CartBounty_WordPress{
      *
      * @since    7.0
      * @return   html
-     * @param    object     $cart    		  	  Cart data. If false, then we must output
+     * @param    object     $cart    		  	  Cart data
      * @param    array      $step_nr              Automation step number
      * @param    boolean    $test                 Weather request triggered by Email test or preview function
      * @param    array    	$preview_data         Automation step input data passed from frontend to allow template preview
@@ -419,7 +425,7 @@ class CartBounty_WordPress{
      *
      * @since    7.0
      * @return   html
-     * @param    object     $cart    		  	  Cart data. If false, then we must output
+     * @param    object     $cart    		  	  Cart data
      * @param    array      $step_nr              Automation step number
      * @param    boolean    $test                 Weather request triggered by Email test or preview function
      * @param    array    	$preview_data         Automation step input data passed from frontend to allow template preview
@@ -984,7 +990,7 @@ class CartBounty_WordPress{
 		$steps = $_POST['cartbounty_automation_steps'];
 		$disabled_steps = array();
 
-		foreach ($steps as $key => $step){
+		foreach( $steps as $key => $step ){
 			if( !isset( $step['enabled'] ) ){
 				$disabled_steps[] = $key; //Add current step to disabled steps array
 			}

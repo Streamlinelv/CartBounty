@@ -945,6 +945,8 @@ class CartBounty_Public{
 	 */
 	public function restore_classic_checkout_fields(){
 
+		if( !class_exists( 'WooCommerce' ) ) return; //If WooCommerce does not exist
+
 		if( !is_checkout() ) return; //Exit if not on checkout page
 
 		if( has_block( 'woocommerce/checkout' ) ) return; //Stop block checkout detected
@@ -1024,6 +1026,8 @@ class CartBounty_Public{
 	 */
 	public function restore_block_checkout_fields(){
 
+		if( !class_exists( 'WooCommerce' ) ) return; //If WooCommerce does not exist
+
 		if( !apply_filters( 'cartbounty_restore_block_checkout', true ) ) return;
 
 		if( !function_exists( 'is_admin' ) || !function_exists( 'is_user_logged_in' ) ) return;
@@ -1033,16 +1037,14 @@ class CartBounty_Public{
 		if( WC()->session ){
 
 			$admin = $this->admin();
-			$session_id = WC()->session->get_customer_id();
-			$counter = $admin->get_cartbounty_transient( 'cartbounty_session' . $session_id );
+			$counter = $admin->get_cartbounty_transient( 'counter', $unique = true );
 
-			if( !$counter ){
+			if( !$counter ) {
 				$counter = 0;
 			}
 
 			$counter++;
-
-			$admin->set_cartbounty_transient( 'cartbounty_session' . $session_id , $counter, 30 ); //30 second expiration
+			$admin->set_cartbounty_transient( 'counter', $counter, 30, $unique = true ); //Expires in 30 seconds
 
 			if( $counter < 5 ){
 				$this->update_woocommerce_database_session();
@@ -1063,9 +1065,9 @@ class CartBounty_Public{
 		$use_same_address_for_billing = false;
 		$new_session_data = array();
 
-	    if( WC()->session ){
+		if( WC()->session ){
 
-	    	if( !$saved_cart ){
+			if( !$saved_cart ){
 				$saved_cart = $this->get_saved_cart();
 			}
 
@@ -1107,97 +1109,115 @@ class CartBounty_Public{
 			if( !$session_data ) return; //Stop if session data missing
 
 			$session_data = maybe_unserialize( $session_data );
+			$customer = array(); //Always create a $customer array, even if 'customer' is null or missing
 
-			if( isset( $session_data['customer'] ) ){
-				$customer = maybe_unserialize( $session_data['customer'] );
+			if( array_key_exists( 'customer', $session_data ) && ! is_null( $session_data['customer'] ) ){
+				$customer = (array) $session_data['customer']; // no maybe_unserialize here anymore
+			}
 
-				if( ( isset( $customer['email'] ) && !empty( $customer['email'] ) ) || ( isset( $customer['phone'] ) && !empty( $customer['phone'] ) ) ) return; //Stop in case session already has email or phone number stored				
+			//Don't overwrite if session already has contact details. Check both plain and billing_* variants.
+			if( ( !empty( $customer['email'] ) || !empty( $customer['billing_email'] ) ) || ( !empty( $customer['phone'] ) || !empty( $customer['billing_phone'] ) ) ) return;
 
-				//In case of data coming from block checkout - replace billing details with shipping unless both shipping and billing fields are present
-				if( isset( $other_fields['converted-shipping-to-billing'] ) ){ //If during abandoned cart saving process we converted shipping fields to billing - must use shipping fields as billing fields
-					$use_same_address_for_billing = true;
-				}
+			//In case of data coming from block checkout - replace billing details with shipping unless both shipping and billing fields are present
+			if( isset( $other_fields['converted-shipping-to-billing'] ) ){ //If during abandoned cart saving process we converted shipping fields to billing - must use shipping fields as billing fields
+				$use_same_address_for_billing = true;
+			}
 
-				//Mapping data
-				foreach( $saved_cart as $key => $value ){
-					
-					if( $key == 'name' ){
+			//Mapping data
+			foreach( $saved_cart as $key => $value ){
+				
+				if( $key == 'name' ){
 
-						if( $use_same_address_for_billing ){
-							$new_session_data['shipping_first_' . $key] = $value;
-
-						}else{
-							$new_session_data['first_' . $key] = $value;
-						}
-					
-					}elseif( $key == 'surname' ){
-
-						if( $use_same_address_for_billing ){
-							$new_session_data['shipping_last_name'] = $value;
-
-						}else{
-							$new_session_data['last_name'] = $value;
-						}
-
-					}elseif( $key == 'phone' && $use_same_address_for_billing ){
-						$new_session_data['shipping_' . $key] = $value;
-
-					}elseif( $key == 'location' ){
-						$location_data = $value;
-						
-						foreach( $location_data as $key => $value){
-
-							if( $use_same_address_for_billing && in_array( $key, ['country', 'city', 'postcode'] ) ){
-								$new_session_data['shipping_' . $key] = $value;
-
-							}else{
-								$new_session_data[$key] = $value;
-							}
-						}
-
-					}elseif( $key == 'other_fields' ){
-						$other_fields_data = $value;
-						
-						foreach( $other_fields_data as $key => $value ){
-
-							if( strpos( $key, 'billing-' ) === 0 && $use_same_address_for_billing ){
-								$new_key = str_replace( 'billing-', 'shipping_', $key );
-								$new_session_data[$new_key] = $value;
-
-							}elseif( strpos( $key, 'billing-' ) === 0 ){
-
-								if( $key == 'billing-company' || $key == 'billing-phone' || $key == 'billing-address_1' || $key == 'billing-address_2' || 'billing-state' ){
-									$new_key = str_replace( 'billing-', '', $key );
-
-								}else{
-									$new_key = str_replace( 'billing-', 'billing_', $key );
-								}
-								
-								$new_session_data[$new_key] = $value;
-							
-							}elseif( strpos( $key, 'shipping-' ) === 0 ){
-								$new_key = str_replace( 'shipping-', 'shipping_', $key );
-								$new_session_data[$new_key] = $value;
-							}
-						}
+					if( $use_same_address_for_billing ){
+						$new_session_data['shipping_first_' . $key] = $value;
 
 					}else{
-						$new_session_data[$key] = $value;
+						$new_session_data['first_' . $key] = $value;
 					}
+				
+				}elseif( $key == 'surname' ){
+
+					if( $use_same_address_for_billing ){
+						$new_session_data['shipping_last_name'] = $value;
+
+					}else{
+						$new_session_data['last_name'] = $value;
+					}
+
+				}elseif( $key == 'phone' && $use_same_address_for_billing ){
+					$new_session_data['shipping_' . $key] = $value;
+
+				}elseif( $key == 'location' ){
+					$location_data = $value;
+					
+					foreach( $location_data as $key => $value){
+
+						if( $use_same_address_for_billing && in_array( $key, ['country', 'city', 'postcode'] ) ){
+							$new_session_data['shipping_' . $key] = $value;
+
+						}else{
+							$new_session_data[$key] = $value;
+						}
+					}
+
+				}elseif( $key == 'other_fields' ){
+					$other_fields_data = $value;
+					
+					foreach( $other_fields_data as $key => $value ){
+
+						if( strpos( $key, 'billing-' ) === 0 && $use_same_address_for_billing ){
+							$new_key = str_replace( 'billing-', 'shipping_', $key );
+							$new_session_data[$new_key] = $value;
+
+						}elseif( strpos( $key, 'billing-' ) === 0 ){
+
+							if( $key == 'billing-company' || $key == 'billing-phone' || $key == 'billing-address_1' || $key == 'billing-address_2' || 'billing-state' ){
+								$new_key = str_replace( 'billing-', '', $key );
+
+							}else{
+								$new_key = str_replace( 'billing-', 'billing_', $key );
+							}
+							
+							$new_session_data[$new_key] = $value;
+						
+						}elseif( strpos( $key, 'shipping-' ) === 0 ){
+							$new_key = str_replace( 'shipping-', 'shipping_', $key );
+							$new_session_data[$new_key] = $value;
+						}
+					}
+
+				}else{
+					$new_session_data[$key] = $value;
 				}
-
-				$customer = array_merge( $customer, $new_session_data );
-				$session_data['customer'] = maybe_serialize( $customer );
-				$new_session_data = maybe_serialize( $session_data );
-
-				$result = $wpdb->update(
-					$session_table_name,
-					[ 'session_value' => $new_session_data ],
-					[ 'session_key' => $session_id ],
-					[ '%s' ],
-					[ '%s' ]
-				);
 			}
+
+			//Mirror plain email/phone into billing_* if missing (helps Blocks + classic checkout)
+			if( !empty( $new_session_data['email'] ) && empty( $new_session_data['billing_email'] ) ){
+				$new_session_data['billing_email'] = $new_session_data['email'];
+			}
+
+			if( !empty( $new_session_data['phone'] ) && empty( $new_session_data['billing_phone'] ) ){
+				$new_session_data['billing_phone'] = $new_session_data['phone'];
+			}
+
+			$customer = array_merge( $customer, $new_session_data );
+
+			if( WC()->customer ){
+				$wc_customer = WC()->customer;
+				$customer['id'] = (string) $wc_customer->get_id();
+				$customer['date_modified'] = (string) $wc_customer->get_date_modified( 'edit' );
+			}
+
+			$session_data['customer'] = $customer;
+			$new_session_data = maybe_serialize( $session_data );
+
+			$result = $wpdb->update(
+				$session_table_name,
+				[ 'session_value' => $new_session_data ],
+				[ 'session_key' => $session_id ],
+				[ '%s' ],
+				[ '%s' ]
+			);
 		}
 	}
 

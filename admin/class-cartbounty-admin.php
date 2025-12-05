@@ -48,7 +48,7 @@ class CartBounty_Admin{
 	 * @access   protected
 	 * @var      CartBounty_Reports    		$reports    Provides methods to control and extend the plugin's Reports area.
 	 */
-	protected $reports  = null;	
+	protected $reports  = null;
 
 	/**
 	 * @since 8.9
@@ -1080,9 +1080,11 @@ class CartBounty_Admin{
 
 		elseif( $icon == 'bulkgate' ){
 			$svg = '<svg style="fill: '. esc_attr( $color ) .';" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 53.8"><g id="g3418"><path id="path3420" d="M35,12.83c11.44,7.83,19.44,17.88,22.73,41H70C68.8,30.78,55,11,35,0,15,11,1.29,30.78,0,53.8H12.29S34,54.61,48.41,32c0,0-14.44,7.68-22.94,4.49-8-3-4.15-10-3.71-10.72A48,48,0,0,1,35,12.83"/></g></svg>';
-		}
+		
+		}elseif( $icon == 'whatsapp' ){
+			$svg = '<svg style="fill: '. esc_attr( $color ) .';" width="360" height="362" viewBox="0 0 360 362" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M307.546 52.5655C273.709 18.685 228.706 0.0171895 180.756 0C81.951 0 1.53846 80.404 1.50408 179.235C1.48689 210.829 9.74646 241.667 25.4319 268.844L0 361.736L95.0236 336.811C121.203 351.096 150.683 358.616 180.679 358.625H180.756C279.544 358.625 359.966 278.212 360 179.381C360.017 131.483 341.392 86.4547 307.546 52.5741V52.5655ZM180.756 328.354H180.696C153.966 328.346 127.744 321.16 104.865 307.589L99.4242 304.358L43.034 319.149L58.0834 264.168L54.5423 258.53C39.6304 234.809 31.749 207.391 31.7662 179.244C31.8006 97.1036 98.6334 30.2707 180.817 30.2707C220.61 30.2879 258.015 45.8015 286.145 73.9665C314.276 102.123 329.755 139.562 329.738 179.364C329.703 261.513 262.871 328.346 180.756 328.346V328.354ZM262.475 216.777C257.997 214.534 235.978 203.704 231.869 202.209C227.761 200.713 224.779 199.966 221.796 204.452C218.814 208.939 210.228 219.029 207.615 222.011C205.002 225.002 202.389 225.372 197.911 223.128C193.434 220.885 179.003 216.158 161.891 200.902C148.578 189.024 139.587 174.362 136.975 169.875C134.362 165.389 136.7 162.965 138.934 160.739C140.945 158.728 143.412 155.505 145.655 152.892C147.899 150.279 148.638 148.406 150.133 145.423C151.629 142.432 150.881 139.82 149.764 137.576C148.646 135.333 139.691 113.287 135.952 104.323C132.316 95.5909 128.621 96.777 125.879 96.6309C123.266 96.5019 120.284 96.4762 117.293 96.4762C114.302 96.4762 109.454 97.5935 105.346 102.08C101.238 106.566 89.6691 117.404 89.6691 139.441C89.6691 161.478 105.716 182.785 107.959 185.776C110.202 188.767 139.544 234.001 184.469 253.408C195.153 258.023 203.498 260.782 210.004 262.845C220.731 266.257 230.494 265.776 238.212 264.624C246.816 263.335 264.71 253.786 268.44 243.326C272.17 232.866 272.17 223.893 271.053 222.028C269.936 220.163 266.945 219.037 262.467 216.794L262.475 216.777Z"/></svg>';
 
-		elseif( $icon == 'push_notification' ){
+		}elseif( $icon == 'push_notification' ){
 			$svg = '<svg style="fill: '. esc_attr( $color ) .';" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 67"><path d="M50.84,67a6.26,6.26,0,0,1-4.27-1.68L34,53.58H12.45A12.4,12.4,0,0,1,0,41.26V12.32A12.4,12.4,0,0,1,12.45,0h45.1A12.4,12.4,0,0,1,70,12.32V41.26A12.4,12.4,0,0,1,57.55,53.58h-.43l-.07,7.3A6.22,6.22,0,0,1,50.84,67ZM12.45,6.53a5.87,5.87,0,0,0-5.92,5.79V41.26a5.87,5.87,0,0,0,5.92,5.79H36.62l13.91,13,.12-13h6.9a5.87,5.87,0,0,0,5.92-5.79V12.32a5.87,5.87,0,0,0-5.92-5.79Z"/><rect x="14.47" y="16.99" width="41.06" height="6.53" rx="3.27"/><rect x="14.47" y="30.01" width="31.06" height="6.53" rx="3.27"/></svg>';
 		}
 
@@ -1406,6 +1408,14 @@ class CartBounty_Admin{
 					'faded'				=> true,
 					'info_link'			=> CARTBOUNTY_BULKGATE_TRIAL_LINK,
 					'description'		=> '<p>' . esc_html__("A perfect channel for sending personalized SMS text messages like abandoned cart reminders.", 'woo-save-abandoned-carts') . '</p><p>' . esc_html__("Recover more sales by sending a personal SMS message along with other abandoned cart reminders.", 'woo-save-abandoned-carts') . '</p>'
+				),
+				'whatsapp'	=> array(
+					'name'				=> 'WhatsApp',
+					'connected'			=> false,
+					'availability'		=> false,
+					'faded'				=> true,
+					'info_link'			=> CARTBOUNTY_WHATSAPP_LINK,
+					'description'		=> '<p>' . esc_html__("Reach customers where they are with instant and personalized WhatsApp abandoned cart reminder messages. Increase conversions and create a more personal shopping experience.", 'woo-save-abandoned-carts') . '</p>'
 				),
 				'push_notification'	=> array(
 					'name'				=> esc_html__( 'Push notifications', 'woo-save-abandoned-carts' ),
@@ -2581,6 +2591,10 @@ class CartBounty_Admin{
 		$interval_name = $this->prepare_time_intervals( $notification_frequency['interval'], $zero_value = '', 'cartbounty_main_settings[notification_frequency]' );
 		$interval = $notification_frequency['selected'];
 
+		if( !is_numeric( $interval ) ){
+			$interval = 3600000;
+		}
+
 		$intervals['cartbounty_notification_sendout_interval'] = array( //Defining cron Interval for sending out email notifications about abandoned carts
 			'interval' 	=> $interval / 1000,
 			'display' 	=> $interval_name[$interval]
@@ -3487,6 +3501,8 @@ class CartBounty_Admin{
 		if( !class_exists( 'WooCommerce' ) ) return;
 
 		global $wpdb;
+		$hash = '';
+		$id = '';
 
 		//Checking if GET argument is present in the link. If not, exit function
 		if (empty( $_GET['cartbounty'] )){
@@ -3496,9 +3512,15 @@ class CartBounty_Admin{
 		//Processing GET parameter from the link
 		$hash_id = sanitize_text_field($_GET['cartbounty']); //Getting and sanitizing GET value from the link
 		$parts = explode('-', $hash_id); //Splitting GET value into hash and ID
-		$hash = $parts[0];
-		$id = $parts[1];
 		$step_nr = false;
+
+		if( isset( $parts[0] ) ){
+			$hash = $parts[0];
+		}
+
+		if( isset( $parts[1] ) ){
+			$id = $parts[1];
+		}
 
 		//Determine recovery step
 		if( isset( $_GET['step'] ) ){
@@ -4031,7 +4053,7 @@ class CartBounty_Admin{
 	 */
 	public function create_cart_url( $email, $session_id, $cart_id ){
 		$cart_url = wc_get_cart_url();
-		$hash = hash_hmac('sha256', $email . $session_id, CARTBOUNTY_ENCRYPTION_KEY) . '-' . $cart_id; //Creating encrypted hash with abandoned cart row ID in the end
+		$hash = hash_hmac( 'sha256', $email . $session_id, CARTBOUNTY_ENCRYPTION_KEY ) . '-' . $cart_id; //Creating encrypted hash with abandoned cart row ID in the end
 		return $checkout_url = $cart_url . '?cartbounty=' . $hash;
 	}
 
@@ -5587,13 +5609,60 @@ class CartBounty_Admin{
 	}
 
 	/**
+	 * Returns prepared contents for displaying Ajax action results
+	 *
+	 * @since    8.10
+	 * @return   HTML
+	 * @param    string    $message           	Message content
+	 * @param    string    $type           		Result type, e.g. success, failure
+	 * @param    string    $class           	Additional class or classes
+	 * @param    boolean   $fade           	    If the notice should fade out after a while or not
+	 */
+	public function prepare_response_message( $message = '', $type = 'failure', $class = '', $fade = true ){
+		$direction = is_rtl() ? 'rtl' : 'ltr';
+		$license_class = 'license-inactive';
+		$icon_name = 'invalid-icon';
+
+		if( empty( $message ) ){
+			$message = __( 'Looks like you are not allowed to do this', 'woo-save-abandoned-carts' );
+		}
+
+		if( $type == 'success' ){
+			$license_class = 'license-active';
+			$icon_name = 'active-icon';
+
+		}elseif( $type == 'expired' ){
+			$license_class = 'license-active license-expired';
+			$icon_name = 'expired-icon';
+		
+		}elseif( $type == 'invalid' ){
+			$icon_name = 'invalid-icon';
+		
+		}elseif( $type == 'inactive' ){
+			$license_class = 'license-missing';
+			$icon_name = 'inactive-icon';
+		}
+
+		if( !empty( $class ) ){
+			$class = ' ' . $class;
+		}
+
+		if( $fade ){
+			$license_class .= ' fadeOutSlow';
+		}
+
+		$result = '<span class="license-status '. esc_attr( $license_class ) . $class .'" dir="'. esc_attr( $direction ) .'"><i class="license-status-icon"><img src="'. esc_url( plugin_dir_url( __DIR__ ) ) . 'admin/assets/'. $icon_name .'.svg" /></i>'. $message .'</span>';
+		return $result;
+	}
+
+	/**
 	 * Converts the WooCommerce country codes to 3-letter ISO codes
 	 *
 	 * @since    8.2
 	 * @return   string    ISO 3-letter country code
 	 * @param    string    $country               WooCommerce's 2 letter country code
 	 */
-	public function convert_country_code( $country ) {
+	public function convert_country_code( $country ){
 		$countries = array(
 			'AF' => 'AFG', //Afghanistan
 			'AX' => 'ALA', //&#197;land Islands

@@ -261,6 +261,8 @@ h2.cartbounty-section-title{
 	color: #177417;
 }
 
+.license-inactive,
+.license-inactive a,
 .cartbounty-invalid-email{
 	color: #ca4a1f;
 }
@@ -1434,7 +1436,7 @@ a.cartbounty-tab{
 }
 
 .cartbounty-input-with-button .cartbounty-text{
-	width: 80%;
+	width: 70%;
 	display: inline-block;
 	margin-right: 1%;
 	margin-bottom: 10px;
@@ -2712,7 +2714,7 @@ h3.cartbounty-loading-skeleton-screen span{
 	}
 
 	.cartbounty-input-with-button .cartbounty-text{
-		width: 70%;
+		width: 60%;
 	}
 
 	.cartbounty-active-features .cartbounty-section-image .cartbounty-icon-container img{
@@ -2788,7 +2790,7 @@ h3.cartbounty-loading-skeleton-screen span{
 	}
 
 	.cartbounty-input-with-button .cartbounty-text{
-		width: 60%;
+		width: 50%;
 	}
 
 	.cartbounty-automation-status{

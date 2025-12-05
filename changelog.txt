@@ -1,5 +1,9 @@
 == Changelog ==
 
+= 8.10 =
+* Improved compatibility with the latest WooCommerce blocks checkout field restoration
+* Code refactoring
+
 = 8.9 =
 * Added two additional reminder steps for WordPress abandoned cart recovery
 * Added ability to include header image inside WordPress reminder emails
