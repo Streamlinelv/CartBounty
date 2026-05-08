@@ -1,5 +1,9 @@
 == Changelog ==
 
+= 8.10.1 =
+* Fixed potential strict MySQL DATETIME compatibility issue during shopping cart checks
+* Improved Action Scheduler event registration to prevent duplicate scheduled actions in concurrent request environments
+
 = 8.10 =
 * Improved compatibility with the latest WooCommerce blocks checkout field restoration
 * Code refactoring

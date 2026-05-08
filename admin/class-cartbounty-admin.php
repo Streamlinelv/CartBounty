@@ -2544,7 +2544,7 @@ class CartBounty_Admin{
 				if( $hook_data['enabled'] ){ //If action should be scheduled
 
 					if ( !as_next_scheduled_action( $hook_name ) ){ //Validate if action has not already been scheduled
-						as_schedule_recurring_action( time(), $hook_data['interval'], $hook_name, array(), CARTBOUNTY );
+						as_schedule_recurring_action( time(), $hook_data['interval'], $hook_name, array(), CARTBOUNTY, true );
 					}
 
 				}else{ //Unschedule action

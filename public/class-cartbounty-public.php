@@ -653,6 +653,15 @@ class CartBounty_Public{
 			if( !$ignore_cooldown ){
 				$cooldown_period = apply_filters( 'cartbounty_cart_cooldown_period', $time['two_hours'] );
 			}
+			
+			//Making sure that both ip_cooldown and cooldown_period periods are valid DATETIME strings in case apply_filters passing incorrect values
+			if( strtotime( $ip_cooldown ) === false ){
+				$ip_cooldown = $time['ten_minutes'];
+			}
+
+			if( strtotime( $cooldown_period ) === false ){
+				$cooldown_period = $time['two_hours'];
+			}
 
 			//First part of the select that looks for the same session ID in the given time period
 			$sql = "SELECT id FROM $cart_table WHERE ( session_id = %s AND time > %s )";

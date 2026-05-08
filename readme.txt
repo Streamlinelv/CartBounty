@@ -5,7 +5,7 @@ Tags: woocommerce, abandoned carts, cart abandonment, exit popup, activecampaign
 Requires at least: 4.6
 Tested up to: 6.9
 Requires PHP: 7.0
-Stable tag: 8.10
+Stable tag: 8.10.1
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -335,8 +335,8 @@ In addition, the Pro version allows you to select if guests from specific countr
 
 == Changelog ==
 
-= 8.10 =
-* Improved compatibility with the latest WooCommerce blocks checkout field restoration
-* Code refactoring
+= 8.10.1 =
+* Fixed potential strict MySQL DATETIME compatibility issue during shopping cart checks
+* Improved Action Scheduler event registration to prevent duplicate scheduled actions in concurrent request environments
 
 [See changelog for all versions](https://raw.githubusercontent.com/Streamlinelv/woo-save-abandoned-carts/master/changelog.txt).
