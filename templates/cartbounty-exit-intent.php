@@ -14,7 +14,7 @@
  * 
  * @package    CartBounty - Save and recover abandoned carts for WooCommerce/Templates
  * @author     Streamline.lv
- * @version    8.4
+ * @version    8.10.2
  */
 
 if (!defined( 'ABSPATH' )){ //Don't allow direct access
@@ -33,12 +33,10 @@ if (!defined( 'ABSPATH' )){ //Don't allow direct access
 			</div>
 			<div id="cartbounty-exit-intent-form-content-r">
 				<?php echo wp_kses_post( apply_filters( 'cartbounty_exit_intent_title_html', sprintf(
-					/* translators: %s - Color code */
-					__( '<h2 style="color: %s">%s</h2>', 'woo-save-abandoned-carts' ), esc_attr( $args['inverse_color'] ), $args['heading'] ) ) ); ?>
+					'<h2 style="color: %s">%s</h2>', esc_attr( $args['inverse_color'] ), $args['heading'] ) ) ); ?>
 				<?php do_action('cartbounty_exit_intent_after_title'); ?>
 				<?php echo wp_kses_post( apply_filters( 'cartbounty_exit_intent_description_html', sprintf(
-					/* translators: %s - Color code */
-					__( '<p style="color: %s">%s</p>', 'woo-save-abandoned-carts' ), esc_attr( $args['inverse_color'] ), $args['content'] ) ) );?>
+					'<p style="color: %s">%s</p>', esc_attr( $args['inverse_color'] ), $args['content'] ) ) );?>
 				<form>
 					<?php do_action('cartbounty_exit_intent_before_form_fields');
 					echo apply_filters( 'cartbounty_exit_intent_field_html', '<input type="email" id="cartbounty-exit-intent-email" required placeholder="'. esc_attr__('Enter your email', 'woo-save-abandoned-carts') .'">' );

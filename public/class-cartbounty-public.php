@@ -1180,7 +1180,7 @@ class CartBounty_Public{
 
 						}elseif( strpos( $key, 'billing-' ) === 0 ){
 
-							if( $key == 'billing-company' || $key == 'billing-phone' || $key == 'billing-address_1' || $key == 'billing-address_2' || 'billing-state' ){
+							if( $key == 'billing-company' || $key == 'billing-phone' || $key == 'billing-address_1' || $key == 'billing-address_2' || $key == 'billing-state' ){
 								$new_key = str_replace( 'billing-', '', $key );
 
 							}else{

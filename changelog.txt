@@ -1,5 +1,9 @@
 == Changelog ==
 
+= 8.10.2 =
+* Minimal code refactoring regarding block checkout field restoration
+* Minor translation optimization
+
 = 8.10.1 =
 * Fixed potential strict MySQL DATETIME compatibility issue during shopping cart checks
 * Improved Action Scheduler event registration to prevent duplicate scheduled actions in concurrent request environments
