@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: CartBounty\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/woo-save-abandoned-carts\n"
-"POT-Creation-Date: 2025-12-05 21:07+0200\n"
+"POT-Creation-Date: 2026-05-23 22:16+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: www.cartbounty.com\n"
@@ -1177,7 +1177,7 @@ msgstr ""
 msgid "Carts"
 msgstr ""
 
-#: admin/class-cartbounty-admin.php:3183
+#: admin/class-cartbounty-admin.php:3183 admin/class-cartbounty-admin.php:5627
 #: includes/class-cartbounty-status.php:54
 #: includes/class-cartbounty-wordpress.php:357
 msgid "Looks like you are not allowed to do this."
@@ -1257,8 +1257,8 @@ msgid "Please consider upgrading to %sCartBounty Pro%s to enable this feature."
 msgstr ""
 
 #: admin/class-cartbounty-admin.php:4465
-#: public/class-cartbounty-public.php:1447
-#: public/class-cartbounty-public.php:1448
+#: public/class-cartbounty-public.php:1456
+#: public/class-cartbounty-public.php:1457
 msgid "You were not leaving your cart just like that, right?"
 msgstr ""
 
@@ -1352,10 +1352,6 @@ msgstr ""
 msgid "Security check failed. The link is not valid."
 msgstr ""
 
-#: admin/class-cartbounty-admin.php:5627
-msgid "Looks like you are not allowed to do this"
-msgstr ""
-
 #: includes/class-cartbounty-reports.php:64
 msgid "No data for selected date range"
 msgstr ""
@@ -1403,7 +1399,14 @@ msgid "Recovered revenue"
 msgstr ""
 
 #: includes/class-cartbounty-reports.php:702
-msgid "N/A"
+#: includes/class-cartbounty-reports.php:2381
+#: includes/class-cartbounty-reports.php:2383
+#: includes/class-cartbounty-reports.php:2384
+#: includes/class-cartbounty-reports.php:2409
+#: includes/class-cartbounty-reports.php:2458
+#: includes/class-cartbounty-reports.php:2464
+#: includes/class-cartbounty-reports.php:2494
+msgid "n/a"
 msgstr ""
 
 #: includes/class-cartbounty-reports.php:822
@@ -1488,16 +1491,6 @@ msgstr ""
 
 #: includes/class-cartbounty-reports.php:1339
 msgid "Apply"
-msgstr ""
-
-#: includes/class-cartbounty-reports.php:2381
-#: includes/class-cartbounty-reports.php:2383
-#: includes/class-cartbounty-reports.php:2384
-#: includes/class-cartbounty-reports.php:2409
-#: includes/class-cartbounty-reports.php:2458
-#: includes/class-cartbounty-reports.php:2464
-#: includes/class-cartbounty-reports.php:2494
-msgid "n/a"
 msgstr ""
 
 #: includes/class-cartbounty-reports.php:2451
@@ -1594,21 +1587,11 @@ msgstr ""
 msgid "Goodbyes are never easy, but this is our last reminder. Products in your shopping cart will expire unless you take them with you."
 msgstr ""
 
-#: templates/cartbounty-exit-intent.php:37
-#, php-format
-msgid "<h2 style=\"color: %s\">%s</h2>"
-msgstr ""
-
-#: templates/cartbounty-exit-intent.php:41
-#, php-format
-msgid "<p style=\"color: %s\">%s</p>"
-msgstr ""
-
-#: templates/cartbounty-exit-intent.php:44
+#: templates/cartbounty-exit-intent.php:42
 msgid "Enter your email"
 msgstr ""
 
-#: templates/cartbounty-exit-intent.php:45
+#: templates/cartbounty-exit-intent.php:43
 msgid "Save"
 msgstr ""
 

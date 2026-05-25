@@ -699,7 +699,7 @@ class CartBounty_Reports{
 	 */
 	public function display_top_products(){
 		$admin = $this->admin();
-		$content = '<div class="cartbounty-report-content cartbounty-empty-top"><div class="cartbounty-empty-text">' . esc_html__( 'N/A', 'woo-save-abandoned-carts' ) .'</div></div>';
+		$content = '<div class="cartbounty-report-content cartbounty-empty-top"><div class="cartbounty-empty-text">' . esc_html__( 'n/a', 'woo-save-abandoned-carts' ) .'</div></div>';
 		$date_information = $this->get_selected_date_information();
 		$carts = $this->get_abandoned_cart_rows( $date_information );
 		$product_array = array();

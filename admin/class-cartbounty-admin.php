@@ -5624,7 +5624,7 @@ class CartBounty_Admin{
 		$icon_name = 'invalid-icon';
 
 		if( empty( $message ) ){
-			$message = __( 'Looks like you are not allowed to do this', 'woo-save-abandoned-carts' );
+			$message = __( 'Looks like you are not allowed to do this.', 'woo-save-abandoned-carts' );
 		}
 
 		if( $type == 'success' ){
