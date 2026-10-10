@@ -36,12 +36,12 @@ CartBounty saves and displays all shopping cart activity from the moment a produ
 Save your time with automated abandoned cart recovery and focus your energy on the important stuff.
 
 * Send abandoned cart reminders using WordPress mail server
-* Send abandoned cart email series using [ActiveCampaign](https://try.activecampaign.com/start), [GetResponse](https://www.getresponse.com/?a=vPJGRchyVX&c=cartbounty_readme) and [MailChimp](http://eepurl.com/hHjfrX) (**Pro**)
+* Send abandoned cart email series using [ActiveCampaign](https://try.activecampaign.com/start), [GetResponse](https://try.getresponsetoday.com/home-page), [Brevo](https://get.brevo.com/home-page) and [MailChimp](http://eepurl.com/hHjfrX) (**Pro**)
 * Use [web push notifications](https://www.cartbounty.com/web-push-notifications-abandoned-cart-recovery/) to send low-friction, real-time, personal and efficient reminders that don't require an email or a phone number (**Pro**)
 * Use [WhatsApp](https://www.cartbounty.com/whatsapp-abandoned-cart-recovery-reminders) to send highly engaging abandoned cart reminder messages (**Pro**)
 * Send SMS text message reminders using [BulkGate](https://portal.bulkgate.com/join/55713) (**Pro**)
 * Use webhook to send abandoned cart data and create powerful automations in apps like [Make (former Integromat)](https://www.make.com/en?pc=cartbounty), [Pabbly](https://payments.pabbly.com/api/affurl/RVYZ07kQyUZ0Z1HUKZ1m/xciq3ahCAzNG3CSo?target=9Z2AHyhSldo6KI1Fn), Zapier or similar (**Pro**)
-* [Personalize messages](https://www.cartbounty.com/personalization-tags/) with dynamic content (**Pro**)
+* [Personalize messages](https://www.cartbounty.com/personalization-tags/) with dynamic content and flexible IF, ELSEIF, ELSE conditions (**Pro**)
 * Generate and send unique coupon codes (**Pro**)
 * Track message open, click-through, recovery and unsubscribe rates (**Pro**)
 * Recover unfinished orders (**Pro**)

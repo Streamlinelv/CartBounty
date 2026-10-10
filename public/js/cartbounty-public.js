@@ -178,8 +178,27 @@
 				}, 1000);
 			}
 		}
+
+		//Restore FunnelKit billing address visibility after cart recovery
+		function restore_funnelkit_billing_visibility(){
+			var billingCheckbox = jQuery('#billing_same_as_shipping');
+
+			if( !billingCheckbox.length || !billingCheckbox.is(':checked') ) return;
+			
+			if( jQuery('#billing_shipping_index').val() != 'billing' ) return; //Continue only if FunnelKit uses billing as the optional address section
+			
+			jQuery('.wfacp_billing_fields.wfacp_billing_field_hide').each(function(){ //Show previously hidden billing fields without triggering checkbox change events
+				var field = jQuery(this);
+				field.removeClass('wfacp_billing_field_hide').addClass('wfacp_billing_field_show');
+			});
+
+			//Synchronize FunnelKit's hidden field with the restored checkbox state
+			jQuery('#wfacp_billing_same_as_shipping').val('1');
+		}
+
+		restore_funnelkit_billing_visibility();
 		
-		jQuery('.wc-block-checkout, .woocommerce-checkout').on( 'keyup keypress change', 'input, textarea, select', getCheckoutData );
+		jQuery('.wc-block-checkout, .woocommerce-checkout').on( 'keyup keypress change', custom_checkout_fields, getCheckoutData );
 		jQuery(window).on( 'load', getCheckoutData ); //Automatically collect and save input field data if input fields already filled on page load
 		jQuery(document).ajaxSend(addCartBountyInputDataToAjax);
 		jQuery(document).on('click', custom_button_selectors, appendHiddenInputField);

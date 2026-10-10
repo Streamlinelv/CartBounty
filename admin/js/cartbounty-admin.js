@@ -457,7 +457,7 @@
 		jQuery(".cartbounty-step-controller").on("click", addStepStatusClass );
 		jQuery(".cartbounty-unavailable").on("click", addUnavailableClass );
 		jQuery("#cartbounty-abandoned-cart-stats-options .cartbounty-unavailable").on("click", addUnavailableReportClass );
-		jQuery(".cartbounty-unavailable .cartbounty-section-image, #cartbounty-sections .cartbounty-unavailable a").on("click", disableLink );
+		jQuery("#cartbounty-sections .cartbounty-unavailable a").on("click", disableLink );
 		jQuery('#cartbounty-copy-system-status').on("click", copySystemReport );
 		jQuery('.cartbounty-step-opener').on("click", addActiveStepClass );
 		jQuery('.cartbounty-wordpress-get-additional-step').on("click", removeActiveStepClassUpgradeNotice );

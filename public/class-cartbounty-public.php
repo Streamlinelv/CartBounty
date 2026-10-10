@@ -147,11 +147,14 @@ class CartBounty_Public{
 		if( $admin->get_settings( 'settings', 'exclude_anonymous_carts' ) && $anonymous ) return;
 
 		$cart = $this->read_cart();
-		$cart_saved = $this->cart_saved( $cart, $user_ip );
+		$cart_status = $this->get_saved_cart_status( $cart, $user_ip );
 		$user_data = $this->get_user_data();
 
-		if( $cart_saved ){ //If cart has already been saved
+		if( $cart_status == 'saved' ){ //If cart has already been saved
 			$result = $this->update_cart( $cart, $user_data, $anonymous, $user_ip );
+
+		}elseif( $cart_status == 'duplicate' ){
+			$result = false;
 
 		}else{
 			$result = $this->create_new_cart( $cart, $user_data, $anonymous, $user_ip );
@@ -185,8 +188,7 @@ class CartBounty_Public{
 		$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
 
 		//In case if the cart has no items in it, we must delete the cart
-		if( empty( $cart['cart_contents'] ) ){
-			$admin->clear_cart_data();
+		if( $this->maybe_clear_cart_data( $cart ) ){
 			return;
 		}
 
@@ -270,9 +272,7 @@ class CartBounty_Public{
 	 */
 	function update_cart( $cart = array(), $user_data = array(), $anonymous = false, $user_ip = '' ){
 		//In case if the cart has no items in it, we must delete the cart
-		if( empty( $cart['cart_contents'] ) ){
-			$admin = $this->admin();
-			$admin->clear_cart_data();
+		if( $this->maybe_clear_cart_data( $cart ) ){
 			return;
 		}
 
@@ -299,6 +299,101 @@ class CartBounty_Public{
 
 		$this->set_cartbounty_session( $cart['session_id'] );
 		return true;
+	}
+
+	/**
+	 * Method checks current shopping cart status by looking for an existing active cart in the past 2 hours by session ID
+	 * or for a duplicate cart with the same IP address and cart content hash in the last 10 minutes.
+	 * Cooldown period introduced to prevent creating new abandoned carts during the same session after user has already placed a new order or
+	 * in case the session_id value gets changed quickly for each page reload and we would end up with multiple identical abandoned carts for the same user.
+	 * New cart for the same user in the same session will be created once the cooldown period has ended.
+	 *
+	 * Returns:
+	 * - saved     If current session has an active cart that can be updated
+	 * - duplicate If the same IP address and cart content hash have been saved recently, but there is no active cart for current session
+	 * - new       If no active or duplicate cart has been found
+	 *
+	 * @since    8.11
+	 * @return   string
+	 * @param    array      $cart                Cart data
+	 * @param    string     $user_ip             Visitor's IP address
+	 * @param    boolean    $ignore_cooldown     If cooldown should be ignored or not. Used when resetting abandoned cart data for registered users
+	 */
+	public function get_saved_cart_status( $cart = array(), $user_ip = '', $ignore_cooldown = false ){
+		$status = 'new';
+
+		if( empty( $cart['session_id'] ) ){
+			return $status;
+		}
+
+		global $wpdb;
+		$admin = $this->admin();
+		$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
+		$time = $admin->get_time_intervals();
+		$cooldown_period = 0;
+		$ip_cooldown = apply_filters( 'cartbounty_cart_ip_cooldown_period', $time['ten_minutes'] );
+
+		if( !$ignore_cooldown ){
+			$cooldown_period = apply_filters( 'cartbounty_cart_cooldown_period', $time['two_hours'] );
+		}
+
+		//Making sure that both ip_cooldown and cooldown_period periods are valid DATETIME strings in case apply_filters passing incorrect values
+		if( strtotime( $ip_cooldown ) === false ){
+			$ip_cooldown = $time['ten_minutes'];
+		}
+
+		if( strtotime( $cooldown_period ) === false ){
+			$cooldown_period = $time['two_hours'];
+		}
+
+		//Checking if current session has an active cart that can be updated
+		$cart_id = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT id
+				FROM $cart_table
+				WHERE session_id = %s
+				AND (
+					type = %d OR
+					type = %d OR
+					type = %d
+				)
+				AND time > %s
+				LIMIT 1",
+				$cart['session_id'],
+				$admin->get_cart_type( 'abandoned' ),
+				$admin->get_cart_type( 'recovered_pending' ),
+				$admin->get_cart_type( 'excluded' ),
+				$cooldown_period
+			)
+		);
+
+		if( !empty( $cart_id ) ){
+			$status = 'saved';
+			return $status;
+		}
+
+		//Checking if the same IP address and cart contents have been saved recently
+		if( !empty( $user_ip ) ){
+			$duplicate_cart_id = $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT id
+					FROM $cart_table
+					WHERE ip_address = %s
+					AND cart_hash = %s
+					AND time > %s
+					LIMIT 1",
+					$user_ip,
+					$cart['cart_hash'],
+					$ip_cooldown
+				)
+			);
+
+			if( !empty( $duplicate_cart_id ) ){
+				$status = 'duplicate';
+			}
+		}
+
+		return $status;
 	}
 
 	/**
@@ -406,7 +501,10 @@ class CartBounty_Public{
 
 		$this->delete_duplicate_carts( $cart['session_id'], $updated_rows );
 		$this->increase_recoverable_cart_count();
-		$this->update_woocommerce_database_session( (object)$user_data );
+		
+		if( !empty( $_POST['source'] ) ){ //Restore checkout fields if data was captured using CartBounty Tools
+			$this->update_woocommerce_customer( $user_data ); //Make customer data captured by CartBounty Tools available to WooCommerce checkout
+		}
 	}
 
 	/**
@@ -488,47 +586,62 @@ class CartBounty_Public{
 		$email_consent_field_name = $admin->get_consent_field_name();
 
 		if( is_user_logged_in() && !isset( $_POST["action"] ) ){ //If user has signed in and the request is not triggered by checkout fields or Exit Intent
-			$current_user = wp_get_current_user();
-
-			if( $current_user->billing_first_name ){
-				$user_data['name'] = sanitize_text_field( $current_user->billing_first_name );
-			
-			}else{
-				$user_data['name'] = sanitize_text_field( $current_user->user_firstname );
-			}
-
-			if( $current_user->billing_last_name ){
-				$user_data['surname'] = sanitize_text_field( $current_user->billing_last_name );
-			
-			}else{
-				$user_data['surname'] = sanitize_text_field( $current_user->user_lastname );
-			}
-
-			if( $current_user->billing_email ){
-				$user_data['email'] = sanitize_email( $current_user->billing_email );
-			
-			}else{
-				$user_data['email'] = sanitize_email( $current_user->user_email );
-			}
-
-			if( $current_user->billing_phone ){
-				$user_data['phone'] = sanitize_text_field( $current_user->billing_phone );
-			}
-
-			if( $current_user->billing_country ){
-				$location['country'] = sanitize_text_field( $current_user->country );
-			}
-
-			if( $current_user->billing_city ){
-				$location['city'] = sanitize_text_field( $current_user->billing_city );
-			}
-
-			if( $current_user->billing_postcode ){
-				$location['postcode'] = sanitize_text_field( $current_user->billing_postcode );
-			}
-
-			//Try to check if registered user has consent data saved
 			$customer = new WC_Customer( get_current_user_id() );
+
+			if( $customer->get_billing_first_name() ){
+				$user_data['name'] = sanitize_text_field( $customer->get_billing_first_name() );
+
+			}else{
+				$user_data['name'] = sanitize_text_field( $customer->get_first_name() );
+			}
+
+			if( $customer->get_billing_last_name() ){
+				$user_data['surname'] = sanitize_text_field( $customer->get_billing_last_name() );
+
+			}else{
+				$user_data['surname'] = sanitize_text_field( $customer->get_last_name() );
+			}
+
+			if( $customer->get_billing_email() ){
+				$user_data['email'] = sanitize_email( $customer->get_billing_email() );
+
+			}else{
+				$user_data['email'] = sanitize_email( $customer->get_email() );
+			}
+
+			if( $customer->get_billing_phone() ){
+				$user_data['phone'] = sanitize_text_field( $customer->get_billing_phone() );
+			}
+
+			if( $customer->get_billing_country() ){
+				$location['country'] = sanitize_text_field( $customer->get_billing_country() );
+			}
+
+			if( $customer->get_billing_city() ){
+				$location['city'] = sanitize_text_field( $customer->get_billing_city() );
+			}
+
+			if( $customer->get_billing_postcode() ){
+				$location['postcode'] = sanitize_text_field( $customer->get_billing_postcode() );
+			}
+
+			$other_fields['billing_company'] = sanitize_text_field( $customer->get_billing_company() );
+			$other_fields['billing_address_1'] = sanitize_text_field( $customer->get_billing_address_1() );
+			$other_fields['billing_address_2'] = sanitize_text_field( $customer->get_billing_address_2() );
+			$other_fields['billing_state'] = sanitize_text_field( $customer->get_billing_state() );
+			$other_fields['shipping_first_name'] = sanitize_text_field( $customer->get_shipping_first_name() );
+			$other_fields['shipping_last_name'] = sanitize_text_field( $customer->get_shipping_last_name() );
+			$other_fields['shipping_company'] = sanitize_text_field( $customer->get_shipping_company() );
+			$other_fields['shipping_address_1'] = sanitize_text_field( $customer->get_shipping_address_1() );
+			$other_fields['shipping_address_2'] = sanitize_text_field( $customer->get_shipping_address_2() );
+			$other_fields['shipping_city'] = sanitize_text_field( $customer->get_shipping_city() );
+			$other_fields['shipping_state'] = sanitize_text_field( $customer->get_shipping_state() );
+			$other_fields['shipping_postcode'] = sanitize_text_field( $customer->get_shipping_postcode() );
+			$other_fields['shipping_country'] = sanitize_text_field( $customer->get_shipping_country() );
+
+			if( method_exists( $customer, 'get_shipping_phone' ) ){
+				$other_fields['shipping_phone'] = sanitize_text_field( $customer->get_shipping_phone() );
+			}
 
 			if( $customer->get_meta( $email_consent_field_name ) ){
 				$user_data['email_consent'] = 1;
@@ -626,65 +739,6 @@ class CartBounty_Public{
 	}
 
 	/**
-	 * Method checks if current shopping cart has been saved in the past 2 hours (by default) basing upon session ID
-	 * or if the IP address and cart content hash in the last 10 minutes have been saved
-	 * Cooldown period introduced to prevent creating new abandoned carts during the same session after user has already placed a new order or
-	 * in case the session_id value gets changed quickly for each page reload and we would end up with multiple identical abandoned carts for the same user
-	 * New cart for the same user in the same session will be created once the cooldown period has ended
-	 *
-	 * @since    3.0
-	 * @return   boolean
-	 * @param    array         $cart    			Cart data
-	 * @param    boolean       $user_ip    			Visitor's IP address
-	 * @param    boolean       $ignore_cooldown    	If cooldown should be igonerd or not. Used when resetting abandoned cart data for registered users
-	 */
-	function cart_saved( $cart, $user_ip = '', $ignore_cooldown = false ){
-		$saved = false;
-
-		if( $cart['session_id'] !== NULL ){
-			global $wpdb;
-			$admin = $this->admin();
-			$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
-			$time = $admin->get_time_intervals();
-			$cooldown_period = 0;
-			$ip_cooldown = apply_filters( 'cartbounty_cart_ip_cooldown_period', $time['ten_minutes'] );
-			$cart_hash = md5( maybe_serialize( $cart['cart_contents'] ) );
-
-			if( !$ignore_cooldown ){
-				$cooldown_period = apply_filters( 'cartbounty_cart_cooldown_period', $time['two_hours'] );
-			}
-			
-			//Making sure that both ip_cooldown and cooldown_period periods are valid DATETIME strings in case apply_filters passing incorrect values
-			if( strtotime( $ip_cooldown ) === false ){
-				$ip_cooldown = $time['ten_minutes'];
-			}
-
-			if( strtotime( $cooldown_period ) === false ){
-				$cooldown_period = $time['two_hours'];
-			}
-
-			//First part of the select that looks for the same session ID in the given time period
-			$sql = "SELECT id FROM $cart_table WHERE ( session_id = %s AND time > %s )";
-			$params = [ $cart['session_id'], $cooldown_period ];
-
-			//Second part of the select if we know the IP address which looks for the same IP address and cart contents in the given time period
-			if( !empty( $user_ip ) ){
-				$sql .= " OR ( ip_address = %s AND cart_hash = %s AND time > %s )";
-				$params = array_merge( $params, [ $user_ip, $cart_hash, $ip_cooldown ] );
-			}
-
-			$sql .= " LIMIT 1";
-			$result = $wpdb->get_var( $wpdb->prepare( $sql, $params ) );
-
-			if( $result ){
-				$saved = true;
-			}
-		}
-
-		return $saved;
-	}
-
-	/**
 	 * Method sets CartBounty session id value
 	 *
 	 * @since    5.0
@@ -701,38 +755,35 @@ class CartBounty_Public{
 	 * @since    4.4
 	 */
 	function update_logged_customer_id(){
-		if(is_user_logged_in()){ //If a user is logged in
-			if(!WC()->session){ //If session does not exist, exit function
-				return;
-			}
-			$customer_id = WC()->session->get_customer_id();
 
-			if( WC()->session->get('cartbounty_session_id') !== NULL && WC()->session->get('cartbounty_session_id') !== $customer_id){ //If session is set and it is different from the one that currently is assigned to the customer
-				global $wpdb;
-				$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
+		if( !is_user_logged_in() ) return; //Exit if user is not logged in
 
-				//Updating session ID to match the one of a logged in user
-				$wpdb->update(
-					$cart_table,
-					array('session_id' => $customer_id),
-					array('session_id' => WC()->session->get('cartbounty_session_id')),
-					array('%s'),
-					array('%s')
-				);
+		if( !WC()->session ) return; //Exit if WooCommerce session does not exist
 
-				WC()->session->set('cartbounty_session_id', $customer_id);
-				$cart = $this->read_cart();
-				$user_data = $this->get_user_data();
-				$user_ip = $this->get_user_ip();
-				$this->update_cart_and_user_data( $cart, $user_data, $user_ip ); //Updating logged in user cart data so we do not have anything that was entered in the checkout form prior the user signed in
+		$customer_id = WC()->session->get_customer_id();
+		$cartbounty_session_id = WC()->session->get( 'cartbounty_session_id' );
 
-			}else{
-				return;
-			}
+		if( $cartbounty_session_id === NULL || $cartbounty_session_id === $customer_id ) return; //Exit if CartBounty session does not exist or already matches customer ID
 
-		}else{
-			return;
-		}
+		global $wpdb;
+		$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
+
+		//Updating session ID to match the one of a logged in user
+		$result = $wpdb->update(
+			$cart_table,
+			array( 'session_id' => $customer_id ),
+			array( 'session_id' => $cartbounty_session_id ),
+			array( '%s' ),
+			array( '%s' )
+		);
+
+		WC()->session->set( 'cartbounty_session_id', $customer_id ); //Updating CartBounty session ID
+
+		$cart = $this->read_cart();
+		$user_data = $this->get_user_data();
+		$user_ip = $this->get_user_ip();
+
+		$this->update_cart_and_user_data( $cart, $user_data, $user_ip ); //Updating abandoned cart with logged in customer data
 	}
 
 	/**
@@ -960,6 +1011,8 @@ class CartBounty_Public{
 
 		if( has_block( 'woocommerce/checkout' ) ) return; //Stop block checkout detected
 
+		if( is_user_logged_in() ) return; //Let WooCommerce restore registered customer data
+
 		if( !apply_filters( 'cartbounty_restore_classic_checkout', true ) ) return;
 
 		$saved_cart = $this->get_saved_cart();
@@ -1026,6 +1079,33 @@ class CartBounty_Public{
 				}
 			}
 		}
+
+		//Restore FunnelKit separate billing address selection
+		if( function_exists( 'WFACP_Core' ) && is_array( $other_fields ) ){
+
+			//Check if the customer previously selected a separate billing address
+			$restore_different_billing = !empty( $other_fields['billing_same_as_shipping'] );
+
+			//For older carts without the FunnelKit checkbox saved, compare billing and shipping addresses
+			if( !isset( $other_fields['billing_same_as_shipping'] ) && !empty( $other_fields['billing_address_1'] ) && !empty( $other_fields['shipping_address_1'] ) ){
+
+				//If addresses differ, assume the customer used a separate billing address
+				if( $other_fields['billing_address_1'] !== $other_fields['shipping_address_1'] ){
+					$restore_different_billing = true;
+				}
+			}
+
+			if( $restore_different_billing ){
+
+				//Restore the checkbox selection unless the customer has already submitted a new value
+				if( !isset( $_POST['billing_same_as_shipping'] ) ){
+					$_POST['billing_same_as_shipping'] = '1';
+				}
+
+				//FunnelKit uses its own filter to determine the checkbox state when rendering the checkout
+				add_filter( 'wfacp_check_different_shipping', array( $this, 'restore_funnelkit_address_toggle' ), 10, 3 );
+			}
+		}
 	}
 
 	/**
@@ -1037,196 +1117,245 @@ class CartBounty_Public{
 
 		if( !class_exists( 'WooCommerce' ) ) return; //If WooCommerce does not exist
 
+		if( is_admin() ) return; //Do not restore checkout fields in administration area
+
+		if( is_user_logged_in() ) return; //Let WooCommerce restore registered customer data
+
 		if( !apply_filters( 'cartbounty_restore_block_checkout', true ) ) return;
 
-		if( !function_exists( 'is_admin' ) || !function_exists( 'is_user_logged_in' ) ) return;
+		if( !WC()->session || !WC()->customer || !WC()->cart ) return;
 
-		if( is_admin() || is_user_logged_in() ) return;
+		$saved_cart = $this->get_saved_cart();
 
-		if( WC()->session ){
+		if( !$saved_cart ) return;
 
-			$admin = $this->admin();
-			$counter = $admin->get_cartbounty_transient( 'counter', $unique = true );
-
-			if( !$counter ) {
-				$counter = 0;
-			}
-
-			$counter++;
-			$admin->set_cartbounty_transient( 'counter', $counter, 30, $unique = true ); //Expires in 30 seconds
-
-			if( $counter < 5 ){
-				$this->update_woocommerce_database_session();
-			}
-		}
+		$this->update_woocommerce_customer( $saved_cart );
 	}
 
 	/**
-	 * Method adds customer data to WooCommerce sessions database table
+	 * Method restores FunnelKit billing address selection
 	 *
-	 * @since    8.4
+	 * @since    8.11
+	 * @param    mixed     $value    Default field value
+	 * @param    string    $key      Field name
+	 * @param    array     $field    Field settings
+	 * @return   mixed
 	 */
-	public function update_woocommerce_database_session( $saved_cart = false ){
-		global $wpdb;
+	public function restore_funnelkit_address_toggle( $value, $key, $field ){
+
+		if( $key == 'billing_same_as_shipping' && !empty( $_POST[$key] ) ){ //Only override the checkbox when CartBounty has restored its selected state
+			return 1;
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Method updates WooCommerce customer data with saved CartBounty customer information
+	 *
+	 * Used for restoring Block checkout fields and making customer data captured
+	 * by CartBounty Tools immediately available to WooCommerce checkout.
+	 *
+	 * @since    8.11
+	 * @return   boolean
+	 * @param    object|array|boolean    $saved_cart    Saved CartBounty customer data
+	 */
+	public function update_woocommerce_customer( $saved_cart = false ){
+
+		if( !class_exists( 'WooCommerce' ) ) return false; //If WooCommerce does not exist
+
+		if( is_user_logged_in() ) return false; //Let WooCommerce use registered customer data
+
+		if( !WC()->session || !WC()->customer ) return false;
+
+		if( !$saved_cart ){
+			$saved_cart = $this->get_saved_cart();
+		}
+
+		if( !$saved_cart ) return false;
+
+		$saved_cart = (object)$saved_cart;
+
 		$admin = $this->admin();
-		$session_table_name = $wpdb->prefix . 'woocommerce_sessions';
-		$is_block_checkout = false;
-		$use_same_address_for_billing = false;
-		$new_session_data = array();
+		$customer = WC()->customer;
+		$other_fields = array();
+		$location_data = array(
+			'country' 	=> '',
+			'city' 		=> '',
+			'postcode' 	=> '',
+		);
 
-		if( WC()->session ){
+		//Restore location data
+		if( !empty( $saved_cart->location ) ){
 
-			if( !$saved_cart ){
-				$saved_cart = $this->get_saved_cart();
+			if( is_array( $saved_cart->location ) ){
+				$location_data = wp_parse_args( $saved_cart->location, $location_data );
+
+			}else{
+				$location_data = wp_parse_args( $admin->get_cart_location( $saved_cart->location ), $location_data );
 			}
+		}
 
-			if( !$saved_cart ) return; //Stop if abandoned cart missing
-
-			if( empty( $saved_cart->email ) && empty( $saved_cart->phone ) ) return; //Stop if contact details are missing
-
-			$necessary_fields = array(
-				'name' 			=> '',
-				'surname' 		=> '',
-				'email' 		=> '',
-				'phone' 		=> '',
-				'location' 		=> '',
-				'other_fields' 	=> '',
-			);
-			$saved_cart = array_intersect_key( (array)$saved_cart, $necessary_fields ); //Leaving just keys that are needed for session
-			$session_id = WC()->session->get_customer_id();
-			$session_customer = WC()->session->get('customer');
-			$other_fields = maybe_unserialize( $saved_cart['other_fields'] );
+		//Restore additional checkout fields
+		if( !empty( $saved_cart->other_fields ) ){
+			$other_fields = maybe_unserialize( $saved_cart->other_fields );
 
 			if( !is_array( $other_fields ) ){
 				$other_fields = array();
 			}
+		}
 
-			$saved_cart['location'] = $admin->get_cart_location( $saved_cart['location'] );
-			$saved_cart['other_fields'] = $other_fields;
-			
-			if( empty( $other_fields ) ){
-				$is_block_checkout = true;
+		$customer_data = array();
 
-			}elseif( is_array( $other_fields ) ){
-				$is_block_checkout = preg_grep( '/^(shipping|billing)-/', array_keys( $other_fields ) );
-			}
+		//Restore main billing customer details
+		if( !empty( $saved_cart->name ) ){
+			$customer_data['billing_first_name'] = sanitize_text_field( $saved_cart->name );
+		}
 
-			if( empty( $is_block_checkout ) ) return; //Stop if block checkout is not detected
+		if( !empty( $saved_cart->surname ) ){
+			$customer_data['billing_last_name'] = sanitize_text_field( $saved_cart->surname );
+		}
 
-			$session_data = $wpdb->get_var( $wpdb->prepare( "SELECT session_value FROM $session_table_name WHERE session_key = %s", $session_id ) );
+		if( !empty( $saved_cart->email ) ){
+			$customer_data['billing_email'] = sanitize_email( $saved_cart->email );
+		}
 
-			if( !$session_data ) return; //Stop if session data missing
+		if( !empty( $saved_cart->phone ) ){
+			$customer_data['billing_phone'] = sanitize_text_field( $saved_cart->phone );
+		}
 
-			$session_data = maybe_unserialize( $session_data );
-			$customer = array(); //Always create a $customer array, even if 'customer' is null or missing
+		if( !empty( $location_data['country'] ) ){
+			$customer_data['billing_country'] = sanitize_text_field( $location_data['country'] );
+		}
 
-			if( array_key_exists( 'customer', $session_data ) && ! is_null( $session_data['customer'] ) ){
-				$customer = (array) $session_data['customer']; // no maybe_unserialize here anymore
-			}
+		if( !empty( $location_data['city'] ) ){
+			$customer_data['billing_city'] = sanitize_text_field( $location_data['city'] );
+		}
 
-			//Don't overwrite if session already has contact details. Check both plain and billing_* variants.
-			if( ( !empty( $customer['email'] ) || !empty( $customer['billing_email'] ) ) || ( !empty( $customer['phone'] ) || !empty( $customer['billing_phone'] ) ) ) return;
+		if( !empty( $location_data['postcode'] ) ){
+			$customer_data['billing_postcode'] = sanitize_text_field( $location_data['postcode'] );
+		}
 
-			//In case of data coming from block checkout - replace billing details with shipping unless both shipping and billing fields are present
-			if( isset( $other_fields['converted-shipping-to-billing'] ) ){ //If during abandoned cart saving process we converted shipping fields to billing - must use shipping fields as billing fields
+		/*
+		 * When Block checkout only provided shipping fields, CartBounty converts them
+		 * to billing fields while saving the abandoned cart and adds this marker.
+		 */
+		$use_same_address_for_billing = !empty( $other_fields['converted-shipping-to-billing'] );
+
+		//If no separate shipping fields were captured, assume billing and shipping addresses are the same
+		if( !$use_same_address_for_billing ){
+
+			$shipping_fields = preg_grep( '/^shipping[-_]/', array_keys( $other_fields ) );
+
+			if( empty( $shipping_fields ) ){
 				$use_same_address_for_billing = true;
 			}
+		}
 
-			//Mapping data
-			foreach( $saved_cart as $key => $value ){
-				
-				if( $key == 'name' ){
+		//Restore remaining billing and shipping customer fields
+		$allowed_fields = array(
+			'billing_first_name',
+			'billing_last_name',
+			'billing_company',
+			'billing_address_1',
+			'billing_address_2',
+			'billing_city',
+			'billing_state',
+			'billing_postcode',
+			'billing_country',
+			'billing_phone',
+			'billing_email',
+			'shipping_first_name',
+			'shipping_last_name',
+			'shipping_company',
+			'shipping_address_1',
+			'shipping_address_2',
+			'shipping_city',
+			'shipping_state',
+			'shipping_postcode',
+			'shipping_country',
+			'shipping_phone',
+		);
 
-					if( $use_same_address_for_billing ){
-						$new_session_data['shipping_first_' . $key] = $value;
+		foreach( $other_fields as $key => $value ){
 
-					}else{
-						$new_session_data['first_' . $key] = $value;
-					}
-				
-				}elseif( $key == 'surname' ){
+			$key = str_replace( '-', '_', $key ); //Convert Block checkout field format to WC_Customer format
 
-					if( $use_same_address_for_billing ){
-						$new_session_data['shipping_last_name'] = $value;
+			if( in_array( $key, $allowed_fields, true ) && $value !== '' ){
+				$customer_data[$key] = sanitize_text_field( $value );
+			}
+		}
 
-					}else{
-						$new_session_data['last_name'] = $value;
-					}
+		/*
+		 * If billing and shipping addresses are the same, copy billing customer data
+		 * to shipping fields so Block checkout can populate its primary address form.
+		 */
+		if( $use_same_address_for_billing ){
 
-				}elseif( $key == 'phone' && $use_same_address_for_billing ){
-					$new_session_data['shipping_' . $key] = $value;
+			$billing_shipping_fields = array(
+				'billing_first_name'	=> 'shipping_first_name',
+				'billing_last_name'		=> 'shipping_last_name',
+				'billing_company'		=> 'shipping_company',
+				'billing_address_1'		=> 'shipping_address_1',
+				'billing_address_2'		=> 'shipping_address_2',
+				'billing_city'			=> 'shipping_city',
+				'billing_state'			=> 'shipping_state',
+				'billing_postcode'		=> 'shipping_postcode',
+				'billing_country'		=> 'shipping_country',
+				'billing_phone'			=> 'shipping_phone',
+			);
 
-				}elseif( $key == 'location' ){
-					$location_data = $value;
-					
-					foreach( $location_data as $key => $value){
+			foreach( $billing_shipping_fields as $billing_key => $shipping_key ){
 
-						if( $use_same_address_for_billing && in_array( $key, ['country', 'city', 'postcode'] ) ){
-							$new_session_data['shipping_' . $key] = $value;
-
-						}else{
-							$new_session_data[$key] = $value;
-						}
-					}
-
-				}elseif( $key == 'other_fields' ){
-					$other_fields_data = $value;
-					
-					foreach( $other_fields_data as $key => $value ){
-
-						if( strpos( $key, 'billing-' ) === 0 && $use_same_address_for_billing ){
-							$new_key = str_replace( 'billing-', 'shipping_', $key );
-							$new_session_data[$new_key] = $value;
-
-						}elseif( strpos( $key, 'billing-' ) === 0 ){
-
-							if( $key == 'billing-company' || $key == 'billing-phone' || $key == 'billing-address_1' || $key == 'billing-address_2' || $key == 'billing-state' ){
-								$new_key = str_replace( 'billing-', '', $key );
-
-							}else{
-								$new_key = str_replace( 'billing-', 'billing_', $key );
-							}
-							
-							$new_session_data[$new_key] = $value;
-						
-						}elseif( strpos( $key, 'shipping-' ) === 0 ){
-							$new_key = str_replace( 'shipping-', 'shipping_', $key );
-							$new_session_data[$new_key] = $value;
-						}
-					}
-
-				}else{
-					$new_session_data[$key] = $value;
+				if( !empty( $customer_data[$billing_key] ) ){
+					$customer_data[$shipping_key] = $customer_data[$billing_key];
 				}
 			}
+		}
 
-			//Mirror plain email/phone into billing_* if missing (helps Blocks + classic checkout)
-			if( !empty( $new_session_data['email'] ) && empty( $new_session_data['billing_email'] ) ){
-				$new_session_data['billing_email'] = $new_session_data['email'];
-			}
+		if( empty( $customer_data ) ) return false;
 
-			if( !empty( $new_session_data['phone'] ) && empty( $new_session_data['billing_phone'] ) ){
-				$new_session_data['billing_phone'] = $new_session_data['phone'];
-			}
+		$customer->set_props( $customer_data );
+		$customer->save();
 
-			$customer = array_merge( $customer, $new_session_data );
+		return true;
+	}
 
-			if( WC()->customer ){
-				$wc_customer = WC()->customer;
-				$customer['id'] = (string) $wc_customer->get_id();
-				$customer['date_modified'] = (string) $wc_customer->get_date_modified( 'edit' );
-			}
+	/**
+	 * Method handles WooCommerce guest to registered customer session transition
+	 *
+	 * When a customer who returned from a CartBounty recovery link signs in,
+	 * update the abandoned cart session ID.
+	 *
+	 * @since    8.11
+	 * @param    string    $guest_session_id    Previous WooCommerce guest session ID
+	 * @param    string    $user_session_id     Registered WooCommerce customer ID
+	 */
+	public function handle_customer_login( $guest_session_id, $user_session_id ){
 
-			$session_data['customer'] = $customer;
-			$new_session_data = maybe_serialize( $session_data );
+		if( !WC()->session ) return;
 
-			$result = $wpdb->update(
-				$session_table_name,
-				[ 'session_value' => $new_session_data ],
-				[ 'session_key' => $session_id ],
-				[ '%s' ],
-				[ '%s' ]
+		if( !WC()->session->get( 'cartbounty_from_link' ) ) return; //Only handle customers who returned from a CartBounty recovery link
+
+		//Remove previously saved WooCommerce persistent cart to prevent it from being merged with restored CartBounty cart
+		delete_user_meta( (int)$user_session_id, '_woocommerce_persistent_cart_' . get_current_blog_id() );
+		$cartbounty_session_id = WC()->session->get( 'cartbounty_session_id' );
+
+		if( !empty( $cartbounty_session_id ) && (string)$cartbounty_session_id !== (string)$user_session_id ){
+
+			global $wpdb;
+			$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
+
+			//Update abandoned cart session ID to match the logged in customer
+			$wpdb->update(
+				$cart_table,
+				array( 'session_id' => $user_session_id ),
+				array( 'session_id' => $cartbounty_session_id ),
+				array( '%s' ),
+				array( '%s' )
 			);
+
+			WC()->session->set( 'cartbounty_session_id', $user_session_id );
 		}
 	}
 
@@ -1240,9 +1369,12 @@ class CartBounty_Public{
 		global $wpdb;
 		$admin = $this->admin();
 		$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
-		$cart = $this->read_cart();
 		
-		$this->update_logged_customer_id(); //If current user had an abandoned cart before - restore session ID (in case of user switching)
+		$this->update_logged_customer_id(); //If current user had an abandoned cart before - restore session ID in case of user switching
+
+		$cart = $this->read_cart();
+
+		if( !isset( $cart['session_id'] ) ) return;
 
 		//Retrieve a single, latest edited abandoned cart with current customer ID
 		$saved_cart = $wpdb->get_row(
@@ -1726,6 +1858,7 @@ class CartBounty_Public{
 			"shipping-postcode",
 			"shipping_postcode",
 			"shipping-phone",
+			"shipping_phone",
 			"checkbox-control-1",
 			"ship-to-different-address-checkbox",
 			"checkbox-control-0",
@@ -1912,5 +2045,26 @@ class CartBounty_Public{
 		}
 
 		return $ip;
+	}
+
+	/**
+	 * Method checks if WooCommerce cart is empty and clears abandoned cart data only during actual cart removal events
+	 *
+	 * @since    8.11
+	 * @return   boolean
+	 * @param    array      $cart      Cart data
+	 */
+	function maybe_clear_cart_data( $cart = array() ){
+		
+		if( !empty( $cart['cart_contents'] ) ){
+			return false;
+		}
+
+		if( current_filter() === 'woocommerce_cart_item_removed' || current_filter() === 'woocommerce_cart_item_removed_from_session' || current_filter() === 'woocommerce_cart_emptied' ){
+			$admin = $this->admin();
+			$admin->clear_cart_data();
+		}
+
+		return true;
 	}
 }

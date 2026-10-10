@@ -171,6 +171,10 @@ h2.cartbounty-section-title{
 	vertical-align: top;
 }
 
+.column-status a .status{
+	cursor: pointer;
+}
+
 .status.shopping,
 .status.new,
 .status.synced,
@@ -1166,10 +1170,6 @@ a.cartbounty-tab{
 	-webkit-box-shadow: none;
 	-moz-box-shadow: none;
 	box-shadow: none;
-}
-
-.cartbounty-unavailable .cartbounty-section-image a{
-	cursor: default;
 }
 
 .cartbounty-section-intro{

@@ -4,7 +4,7 @@
  * Plugin Name: CartBounty - Save and recover abandoned carts for WooCommerce
  * Plugin URI: https://www.cartbounty.com
  * Description: Save abandoned carts by instantly capturing WooCommerce checkout form before submission.
- * Version: 8.10.2
+ * Version: 8.11
  * Text Domain: woo-save-abandoned-carts
  * Author: Streamline.lv
  * Author URI: http://www.majas-lapu-izstrade.lv/en
@@ -19,7 +19,7 @@
 if ( ! defined( 'WPINC' ) ) die;
 
 //Defining constants
-if (!defined('CARTBOUNTY_VERSION_NUMBER')) define( 'CARTBOUNTY_VERSION_NUMBER', '8.10.2' );
+if (!defined('CARTBOUNTY_VERSION_NUMBER')) define( 'CARTBOUNTY_VERSION_NUMBER', '8.11' );
 if (!defined('CARTBOUNTY_PLUGIN_NAME')) define( 'CARTBOUNTY_PLUGIN_NAME', 'CartBounty - Save and recover abandoned carts for WooCommerce' );
 if (!defined('CARTBOUNTY')) define( 'CARTBOUNTY', 'cartbounty' );
 if (!defined('CARTBOUNTY_PLUGIN_NAME_SLUG')) define( 'CARTBOUNTY_PLUGIN_NAME_SLUG', 'cartbounty' );
@@ -35,7 +35,8 @@ if (!defined('CARTBOUNTY_MAX_SYNC_PERIOD')) define( 'CARTBOUNTY_MAX_SYNC_PERIOD'
 if (!defined('CARTBOUNTY_MAX_STEPS')) define( 'CARTBOUNTY_MAX_STEPS', 3 ); //Temporary block since version 8.9. Will be removed in future versions
 if (!defined('CARTBOUNTY_ENCRYPTION_KEY')) define('CARTBOUNTY_ENCRYPTION_KEY', '6c7f0ff3c5b607b0762gbsEwuqSb5c0e5461611791f2ff8d4d45009853795c' ); //Defines encryption key used for creating checkout URL hash part of the link
 if (!defined('CARTBOUNTY_ACTIVECAMPAIGN_TRIAL_LINK')) define('CARTBOUNTY_ACTIVECAMPAIGN_TRIAL_LINK', 'https://try.activecampaign.com/start' ); //ActiveCampaign trial link
-if (!defined('CARTBOUNTY_GETRESPONSE_TRIAL_LINK')) define('CARTBOUNTY_GETRESPONSE_TRIAL_LINK', 'https://www.getresponse.com/features/marketing-automation?a=vPJGRchyVX&c=integrate_cartbounty' ); //GetResponse free trial link
+if (!defined('CARTBOUNTY_GETRESPONSE_TRIAL_LINK')) define('CARTBOUNTY_GETRESPONSE_TRIAL_LINK', 'https://try.getresponsetoday.com/home-page' ); //GetResponse free trial link
+if (!defined('CARTBOUNTY_BREVO_SIGNUP_LINK')) define('CARTBOUNTY_BREVO_SIGNUP_LINK', 'https://get.brevo.com/home-page' ); //Brevo sign-up link
 if (!defined('CARTBOUNTY_MAILCHIMP_LINK')) define('CARTBOUNTY_MAILCHIMP_LINK', 'http://eepurl.com/hHjfrX' ); //MailChimp link
 if (!defined('CARTBOUNTY_FAQ_LINK')) define('CARTBOUNTY_FAQ_LINK', 'https://wordpress.org/plugins/woo-save-abandoned-carts/#faq' );
 if (!defined('CARTBOUNTY_FEATURE_LINK')) define('CARTBOUNTY_FEATURE_LINK', 'https://www.cartbounty.com/contact/' ); //This is the URL where users can provide new ideas and suggestions
@@ -80,8 +81,20 @@ function deactivate_cartbounty(){
 	CartBounty_Deactivator::deactivate();
 }
 
+/**
+ * Declare CartBounty Pro compatibility with WooCommerce HPOS
+ *
+ * @since    8.11
+ */
+function declare_cartbounty_hpos_compatibility(){
+	if( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ){
+		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
+	}
+}
+
 register_activation_hook( __FILE__, 'activate_cartbounty' );
 register_deactivation_hook( __FILE__, 'deactivate_cartbounty' );
+add_action( 'before_woocommerce_init', 'declare_cartbounty_hpos_compatibility' );
 
 /**
  * The core plugin class that is used to define internationalization,

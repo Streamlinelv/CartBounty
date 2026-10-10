@@ -6,6 +6,7 @@
 	 	var timer;
 
 	 	function showExitIntentForm(event){
+	 		var displayed = false;
 	 		var currentTime = new Date().getTime();
 			var timePeriod = cartbounty_ei.hours; //Time period in hours
 			var last_time_displayed = localStorage.getItem('cartbounty_ei_last_time');
@@ -22,6 +23,8 @@
 		        if(last_time_displayed == null || timePeriod == 0) { //If time period has passed or Exit Intent test mode is enabled
 		            $('#cartbounty-exit-intent-form').addClass('cartbounty-visible'); //Display form
 		        	$('#cartbounty-exit-intent-form-backdrop').css('opacity', '').addClass('cartbounty-visible'); //Show backdrop
+		        	displayed = true;
+
 		        	if(timePeriod != 0){
 		        		localStorage.setItem('cartbounty_ei_last_time', currentTime);
 		        	}
@@ -31,6 +34,15 @@
 					}
 		        }
 		    }
+
+		    if(displayed){ //Place cursor inside the first visible contact field
+				setTimeout(function(){
+					if(jQuery('#cartbounty-exit-intent-form').hasClass('cartbounty-visible')){
+						jQuery('#cartbounty-exit-intent-email').filter(':visible').first().trigger('focus');
+					}
+				}, 100);
+			}
+			return displayed;
 	 	}
 
 		function getExitIntentEmail() { //Reading email entered in exit intent

@@ -50,6 +50,9 @@ class CartBounty_Admin{
 	 */
 	protected $reports  = null;
 
+	private $wp_mail_from_email = '';
+	private $wp_mail_from_name = '';
+
 	/**
 	 * @since 8.9
 	 * @access protected
@@ -90,6 +93,28 @@ class CartBounty_Admin{
 		}
 
 		return $this->reports;
+	}
+
+	/**
+	 * Set wp_mail sender email address
+	 *
+	 * @since    8.11
+	 * @param    string    $email    Sender email address
+	 * @return   string
+	 */
+	public function set_wp_mail_from_email( $email ){
+		return $this->wp_mail_from_email;
+	}
+
+	/**
+	 * Set wp_mail sender name
+	 *
+	 * @since    8.11
+	 * @param    string    $name    Sender name
+	 * @return   string
+	 */
+	public function set_wp_mail_from_name( $name ){
+		return $this->wp_mail_from_name;
 	}
 
 	/**
@@ -639,7 +664,7 @@ class CartBounty_Admin{
 												}?>
 												<div class="cartbounty-section-image">
 													<?php echo $this->get_connection( $item['connected'], true, $tab ); ?>
-													<a href="<?php echo esc_url( $link ); ?>" title="<?php echo esc_attr( $item['name'] ); ?>"><?php echo $this->get_icon( $key, false, false, true ); ?></a>
+													<a href="<?php echo esc_url( $item['info_link'] ); ?>" title="<?php echo esc_attr( $item['name'] ); ?>" <?php if(!$item['availability']){echo ' target="_blank"'; }?>><?php echo $this->get_icon( $key, false, false, true ); ?></a>
 												</div>
 												<div class="cartbounty-section-content">
 													<h3><a href="<?php echo esc_url( $item['info_link'] ); ?>" title="<?php echo esc_attr( $item['name'] ); ?>" <?php if(!$item['availability']){echo ' target="_blank"'; }?>><?php echo esc_html( $item['name'] ); ?></a></h3>
@@ -1068,9 +1093,11 @@ class CartBounty_Admin{
 
 		elseif( $icon == 'getresponse' ){
 			$svg = '<svg style="fill: '. esc_attr( $color ) .';" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 44.54"><path d="M35,35a29,29,0,0,1-17.22-5.84A28.38,28.38,0,0,1,6.89,11.35c-.07-.47-.15-.94-.21-1.33A3.2,3.2,0,0,1,9.86,6.36h1.48a23.94,23.94,0,0,0,8.4,13.76A24.74,24.74,0,0,0,34.91,25.5C48.16,25.78,61.05,14,69.31,1.15A3,3,0,0,0,67,0H3A3,3,0,0,0,0,3V41.55a3,3,0,0,0,3,3H67a3,3,0,0,0,3-3V8.5C59.14,27.59,46.65,35,35,35Z"/></svg>';
-		}
 
-		elseif( $icon == 'mailchimp' ){
+		}elseif( $icon == 'brevo' ){
+			$svg = '<svg style="fill: '. esc_attr( $color ) .';" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 206.28 291.82"><path d="M39.84,145.7V38h65.52c22.13,0,36.74,12.8,36.74,32.22,0,22.07-19,38.85-58,51.65-26.56,8.38-38.51,15.45-42.94,23.85H39.84Zm0,108.16v-45c0-19.87,16.83-39.3,40.29-46.81,20.81-7.06,38.06-14.13,52.68-21.62,19.48,11.49,31.42,31.33,31.42,52.09,0,35.31-33.65,61.36-79.24,61.36ZM0,291.82H88.53c67.3,0,117.75-41.94,117.75-97.56,0-30.47-15.49-57.83-42.94-75.5,14.17-14.13,20.81-30.46,20.81-50.33C184.15,27.38,154.49,0,109.79,0H0Z"/></svg>';
+
+		}elseif( $icon == 'mailchimp' ){
 			$svg = '<svg style="fill: '. esc_attr( $color ) .';" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 65.96 70"><path d="M49.61,33.08a5.41,5.41,0,0,1,1.45,0,4.92,4.92,0,0,0,.07-2.75c-.34-1.66-.82-2.67-1.79-2.52s-1,1.37-.66,3a5.7,5.7,0,0,0,.93,2.24Z"/><path d="M41.26,34.4c.69.3,1.12.5,1.29.33s.07-.32-.09-.59a4,4,0,0,0-1.8-1.45,4.88,4.88,0,0,0-4.78.57c-.47.34-.91.81-.84,1.1,0,.09.09.16.25.19a27.75,27.75,0,0,1,3.27-.73,5.65,5.65,0,0,1,2.7.58Z"/><path d="M39.85,35.2a3.23,3.23,0,0,0-1.72.72,1.1,1.1,0,0,0-.45.69.19.19,0,0,0,.07.16.2.2,0,0,0,.15.06,2.81,2.81,0,0,0,.67-.18,5.74,5.74,0,0,1,2.92-.31c.45,0,.67.08.77-.07a.26.26,0,0,0,0-.29,2.62,2.62,0,0,0-2.38-.78Z"/><path d="M46.79,38.13a1.13,1.13,0,0,0,1.52-.26c.22-.45-.1-1.06-.72-1.37a1.13,1.13,0,0,0-1.52.27,1.11,1.11,0,0,0,.72,1.36Z"/><path d="M50.75,34.67c-.5,0-.92.54-.93,1.23s.39,1.25.89,1.26.91-.55.93-1.23-.39-1.25-.89-1.26Z"/><path d="M17.14,47c-.12-.15-.33-.1-.53-.06a2.11,2.11,0,0,1-.46.07,1,1,0,0,1-.86-.44,1.59,1.59,0,0,1,0-1.47,2,2,0,0,1,.12-.26c.4-.9,1.07-2.41.31-3.85a3.38,3.38,0,0,0-2.6-1.89,3.34,3.34,0,0,0-2.87,1,4.14,4.14,0,0,0-1.07,3.47c.08.22.2.28.29.29s.47-.11.64-.58a.86.86,0,0,0,0-.15,5,5,0,0,1,.46-1.08,2,2,0,0,1,1.26-.87,2,2,0,0,1,1.53.29,2,2,0,0,1,.74,2.36A5.58,5.58,0,0,0,13.8,46a2.11,2.11,0,0,0,1.87,2.16,1.59,1.59,0,0,0,1.5-.75.31.31,0,0,0,0-.37Z"/><path d="M24.76,19.66a31,31,0,0,1,8.71-7.12.11.11,0,0,1,.15.15,8.56,8.56,0,0,0-.81,2,.12.12,0,0,0,.18.12,17,17,0,0,1,7.65-2.7.13.13,0,0,1,.08.22,6.6,6.6,0,0,0-1.21,1.21.12.12,0,0,0,.1.18A15.09,15.09,0,0,1,46,15.38c.12.06,0,.3-.1.27a25.86,25.86,0,0,0-11.58,0,26.57,26.57,0,0,0-9.41,4.15.11.11,0,0,1-.15-.17Zm13,29.25Zm10.78,1.27a.21.21,0,0,0,.12-.2.2.2,0,0,0-.22-.18,24.86,24.86,0,0,1-10.84-1.1c.57-1.87,2.1-1.19,4.4-1a32.17,32.17,0,0,0,10.64-1.15,24.28,24.28,0,0,0,8-3.95,16,16,0,0,1,1.11,3.78,1.86,1.86,0,0,1,1.17.22c.5.31.87.95.62,2.61a14.39,14.39,0,0,1-4,7.93,16.67,16.67,0,0,1-4.86,3.63,20,20,0,0,1-3.17,1.34c-8.35,2.73-16.9-.27-19.65-6.71a9.46,9.46,0,0,1-.55-1.52,13.36,13.36,0,0,1,2.93-12.54h0a1.09,1.09,0,0,0,.39-.75,1.27,1.27,0,0,0-.3-.7c-1.09-1.59-4.86-4.28-4.11-9.49C30.68,26.64,34,24,37,24.16l.77,0c1.33.08,2.48.25,3.57.3a7.19,7.19,0,0,0,5.41-1.81,4.13,4.13,0,0,1,2.07-1.17,2.71,2.71,0,0,1,.79-.08,2.68,2.68,0,0,1,1.33.43c1.56,1,1.78,3.55,1.86,5.38,0,1.05.17,3.58.21,4.31.1,1.67.54,1.9,1.42,2.19.5.17,1,.29,1.65.48a9.31,9.31,0,0,1,4,1.92,2.56,2.56,0,0,1,.74,1.45c.24,1.77-1.38,4-5.67,5.95a28.69,28.69,0,0,1-14.3,2.29l-1.37-.15c-3.15-.43-4.94,3.63-3,6.42,1.21,1.79,4.52,3,7.84,3,7.59,0,13.43-3.24,15.6-6l.17-.24c.11-.16,0-.25-.11-.16-1.77,1.21-9.66,6-18.08,4.58a11.38,11.38,0,0,1-2-.53c-.75-.29-2.3-1-2.49-2.6,6.8,2.1,11.09.11,11.09.11ZM11.18,34a9.06,9.06,0,0,0-5.72,3.65A15.45,15.45,0,0,1,3,35.33C1,31.46,5.24,24,8.22,19.7c7.35-10.49,18.86-18.43,24.19-17,.86.25,3.73,3.58,3.73,3.58a74.88,74.88,0,0,0-10.26,7.07A46.63,46.63,0,0,0,11.18,34Zm4,17.73a5,5,0,0,1-1.09.08c-3.56-.09-7.41-3.3-7.79-7.1-.42-4.2,1.72-7.43,5.52-8.2a6.67,6.67,0,0,1,1.6-.11c2.13.11,5.27,1.75,6,6.39.64,4.11-.37,8.29-4.22,8.94Zm48.22-7.43c0-.11-.23-.84-.51-1.71a13.28,13.28,0,0,0-.55-1.49,5.47,5.47,0,0,0,1-3.94,5,5,0,0,0-1.45-2.81,11.64,11.64,0,0,0-5.11-2.53l-1.3-.36c0-.06-.07-3.07-.13-4.37a15,15,0,0,0-.57-3.84,10.35,10.35,0,0,0-2.66-4.74c3.24-3.36,5.27-7.06,5.26-10.24,0-6.11-7.51-8-16.76-4.13l-2,.83L35,1.47c-10.54-9.2-43.51,27.44-33,36.34l2.31,1.95A11.32,11.32,0,0,0,3.71,45,10.3,10.3,0,0,0,7.27,51.6a10.86,10.86,0,0,0,7,2.81C18.35,63.86,27.72,69.66,38.71,70c11.78.35,21.68-5.18,25.82-15.11A20.84,20.84,0,0,0,66,48.26c0-2.79-1.58-3.94-2.58-3.94Z"/></svg>';
 		}
 
@@ -1393,6 +1420,14 @@ class CartBounty_Admin{
 					'info_link'			=> CARTBOUNTY_GETRESPONSE_TRIAL_LINK,
 					'description'		=> '<p>' . esc_html__("GetResponse offers efficient and beautifully designed email marketing platform to recover abandoned carts. It is a professional email marketing system with awesome email design options and beautifully pre-designed email templates.", 'woo-save-abandoned-carts') . '</p>'
 				),
+				'brevo'	=> array(
+					'name'				=> 'Brevo',
+					'connected'			=> false,
+					'availability'		=> false,
+					'faded'				=> true,
+					'info_link'			=> CARTBOUNTY_BREVO_SIGNUP_LINK,
+					'description'		=> '<p>' . esc_html__("Brevo offers one of the most flexible and powerful automation builders, with an intuitive interface and excellent user experience, helping you recover abandoned carts using customer, cart and event data from CartBounty.", 'woo-save-abandoned-carts') . '</p>'
+				),
 				'mailchimp'	=> array(
 					'name'				=> 'MailChimp',
 					'connected'			=> false,
@@ -1489,7 +1524,6 @@ class CartBounty_Admin{
 					/* translators: %s - URL link tags */
 					esc_html__('A simple solution for sending abandoned cart reminder emails using WordPress mail server. This recovery option works best if you have a small to medium number of abandoned carts.', 'woo-save-abandoned-carts') . esc_html__('If you are looking for something more advanced and powerful, please consider upgrading to %s%s Pro%s.', 'woo-save-abandoned-carts'), '<a href="'. esc_url( $this->get_trackable_link( CARTBOUNTY_LICENSE_SERVER_URL, 'wp_section_intro' ) ) .'" target="_blank">', esc_html( CARTBOUNTY_ABBREVIATION ), '</a>' );?>
 				</div>
-
 				<form method="post" action="options.php">
 					<?php
 						global $wpdb;
@@ -2858,8 +2892,6 @@ class CartBounty_Admin{
 			$to = explode(',', $to_without_spaces);
 		}
 		
-		$sender = 'WordPress@' . preg_replace( '#^www.#', '', $this->get_current_domain_name() );
-		$from = "From: ". esc_html( CARTBOUNTY_ABBREVIATION ) ." <" . apply_filters( 'cartbounty_from_email', esc_html( $sender ) ) . ">";
 		$blog_name = get_option( 'blogname' );
 		$admin_link = get_admin_url() .'admin.php?page='. CARTBOUNTY;
 
@@ -2926,9 +2958,21 @@ class CartBounty_Admin{
 		$message = ob_get_contents();
 		ob_end_clean();
 
-		$headers = "$from\n" . "Content-Type: text/html; charset=\"" . esc_attr( get_option('blog_charset') ) . "\"\n";
-		//Sending out email
-		wp_mail( $to, esc_html($subject), $message, $headers );
+		$sender = 'WordPress@' . preg_replace( '#^www.#', '', $this->get_current_domain_name() );
+		$from_email = apply_filters( 'cartbounty_from_email', $sender );
+		$from_name = CARTBOUNTY_ABBREVIATION;
+		$header = array(
+			'content-type'	=> 'Content-Type: text/html; charset="' . esc_attr( get_option( 'blog_charset' ) ) . '"'
+		);
+
+		$this->send_wp_mail( //Sending out email
+			$to,
+			esc_html( $subject ),
+			$message,
+			$header,
+			$from_email,
+			$from_name
+		);
 
 		//Update mail_sent status to true with mail_status = 0 and are older than 60 minutes
 		$wpdb->query(
@@ -2945,6 +2989,43 @@ class CartBounty_Admin{
 			)
 		);
 	}
+
+	/**
+	 * Send email using wp_mail
+	 * Temporarily set custom sender name and email address to allow override by other plugins like Brevo to take over
+	 *
+	 * @since    8.11
+	 * @param    string|array    $to           Email recipient
+	 * @param    string          $subject      Email subject
+	 * @param    string          $message      Email contents
+	 * @param    array           $header       Email headers
+	 * @param    string          $from_email   Sender email address
+	 * @param    string          $from_name    Sender name
+	 * @return   boolean
+	 */
+	public function send_wp_mail( $to, $subject, $message, $header = array(), $from_email = '', $from_name = '' ){
+		$this->wp_mail_from_email = sanitize_email( $from_email );
+		$this->wp_mail_from_name = sanitize_text_field( $from_name );
+
+		if( !empty( $this->wp_mail_from_email ) ){
+			add_filter( 'wp_mail_from', array( $this, 'set_wp_mail_from_email' ), 1 );
+		}
+
+		if( !empty( $this->wp_mail_from_name ) ){
+			add_filter( 'wp_mail_from_name', array( $this, 'set_wp_mail_from_name' ), 1 );
+		}
+
+		$result = wp_mail( $to, $subject, $message, $header );
+
+		remove_filter( 'wp_mail_from', array( $this, 'set_wp_mail_from_email' ), 1 );
+		remove_filter( 'wp_mail_from_name', array( $this, 'set_wp_mail_from_name' ), 1 );
+
+		$this->wp_mail_from_email = '';
+		$this->wp_mail_from_name = '';
+
+		return $result;
+	}
+
 
 	/**
 	 * Method retrieves Settings tab url
@@ -3426,7 +3507,7 @@ class CartBounty_Admin{
 			'cart_contents' => '',
 		);
 
-		if( $public->cart_saved( $cart, $ip_address = '', $ignore_cooldown = true ) ){ //If we have saved an abandoned cart for the user - go ahead and reset in case it has been abandoned or payment is still pending
+		if( $public->get_saved_cart_status( $cart, $ip_address = '', $ignore_cooldown = true ) == 'saved' ){ //If we have saved an abandoned cart for the user - go ahead and reset in case it has been abandoned or payment is still pending
 			$cart_table = $wpdb->prefix . CARTBOUNTY_TABLE_NAME;
 			$updated_rows = $wpdb->query(
 				$wpdb->prepare(
@@ -4504,9 +4585,31 @@ class CartBounty_Admin{
 			$decimals = wc_get_price_decimals();
 		}
 
+		if( !empty( $currency_code ) ){
+			$currency_code = strtoupper( trim( $currency_code ) );
+		}
+
 		$price = number_format( ( float )$price, $decimals, '.', '' ); //Format price so there would always be correct number of decimals after comma, e.g. 2.30 instead of 2.3
 		$woocommerce_price_format = get_woocommerce_price_format(); //Retrieve the pricing format the user has set
 		$currency = $this->get_currency( $currency_code );
+
+		if( apply_filters( 'cartbounty_display_currency_code', false ) && !empty( $currency_code ) ){ //If currency code display is enabled, display currency code instead of symbol
+			$currency = $currency_code;
+			$currency_position = get_option( 'woocommerce_currency_pos' );
+
+			if( $currency_position == 'left' ){
+				$woocommerce_price_format = '%1$s%2$s';
+
+			}elseif( $currency_position == 'left_space' ){
+				$woocommerce_price_format = '%1$s %2$s';
+
+			}elseif( $currency_position == 'right' ){
+				$woocommerce_price_format = '%2$s%1$s';
+
+			}elseif( $currency_position == 'right_space' ){
+				$woocommerce_price_format = '%2$s %1$s';
+			}
+		}
 
 		$price = sprintf( apply_filters( 'cartbounty_price_format', $woocommerce_price_format ), $currency, $price );
 		return $price;
@@ -4523,7 +4626,23 @@ class CartBounty_Admin{
 		
 		if( !class_exists( 'WooCommerce' ) ) return;
 
-		$currency = get_woocommerce_currency_symbol( $currency_code );
+		if( !empty( $currency_code ) ){
+			$currency_code = strtoupper( trim( $currency_code ) );
+		}
+
+		$currency = '';
+
+		if( !empty( $currency_code ) ){
+			$currency_symbols = get_woocommerce_currency_symbols();
+
+			if( isset( $currency_symbols[$currency_code] ) ){
+				$currency = $currency_symbols[$currency_code];
+			}
+		}
+
+		if( empty( $currency ) ){
+			$currency = get_woocommerce_currency_symbol( $currency_code );
+		}
 
 		if( apply_filters( 'cartbounty_display_currency_code', false ) ){ //If currency code display is enabled, display currency code instead of symbol. By default we display currency symbol
 			$currency = $currency_code;
@@ -5100,7 +5219,7 @@ class CartBounty_Admin{
 		<?php foreach( $features as $section => $feature ): ?>
 			<?php foreach( $feature as $key => $item ): ?>
 				<?php if( $item['connected'] ): ?>
-					<?php $link = '?page='. CARTBOUNTY .'&tab='. $section .'&section='. $key; ?>
+					<?php $link = $this->get_section_path( $section, $key ); ?>
 					<div class="cartbounty-col-xs-6 cartbounty-section-item-container">
 						<a class="cartbounty-section-item cartbounty-connected" href="<?php echo esc_url( $link ); ?>" title="<?php echo esc_attr( $item['name'] ); ?>">
 							<span class="cartbounty-section-image"><?php echo $this->get_icon( $key, false, false, true ); ?></span>
@@ -5116,6 +5235,19 @@ class CartBounty_Admin{
 		<?php $content = ob_get_contents();
 		ob_end_clean();
 		return $content;
+	}
+
+	/**
+	 * Retrieve a link to specific section
+	 *
+	 * @since    8.11
+	 * @return   string
+	 * @param    string    $tab                Tab e.g. recovery
+	 * @param    string    $section            Section e.g. mailchimp, activecampaign
+	 */
+	function get_section_path( $tab, $section ){
+		$link = '?page='. CARTBOUNTY .'&tab='. $tab .'&section='. $section;
+		return $link;
 	}
 
 	/**

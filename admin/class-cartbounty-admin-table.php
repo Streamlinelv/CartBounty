@@ -411,12 +411,12 @@ class CartBounty_Table extends WP_List_Table{
 
 			if($item['wp_steps_completed']){
 				$email_history = $wordpress->display_email_history( $item['id'] ); //Getting email history of current cart
-				$status .= sprintf('<div class="status-item-container email-history"><span class="cartbounty-tooltip">%s%s</span><span class="status synced wordpress">WP</span></div>', esc_html__('Sent via WordPress', 'woo-save-abandoned-carts'), $email_history );
+				$status .= sprintf('<div class="status-item-container email-history"><span class="cartbounty-tooltip">%s%s</span><a href="%s"><span class="status synced wordpress">WP</span></a></div>', esc_html__('Sent via WordPress', 'woo-save-abandoned-carts'), $email_history, esc_url( $admin->get_section_path( 'recovery', 'wordpress' ) ) );
 			}
 		}
 
 		if($item['saved_via'] == 1){ //If cart saved via Exit Intent
-			$status .= sprintf('<div class="status-item-container tool"><span class="cartbounty-tooltip">%s</span><span class="status tool-saved saved-by-exit-intent">EI</span></div>', esc_html__('Saved by Exit Intent', 'woo-save-abandoned-carts') );
+			$status .= sprintf('<div class="status-item-container tool"><span class="cartbounty-tooltip">%s</span><a href="%s"><span class="status tool-saved saved-by-exit-intent">EI</span></a></div>', esc_html__('Saved by Exit Intent', 'woo-save-abandoned-carts'), esc_url( $admin->get_section_path( 'tools', 'exit_intent' ) ) );
 
 		}elseif($item['saved_via'] == 3){ //If cart saved via custom field
 			$status .= sprintf('<div class="status-item-container tool"><span class="cartbounty-tooltip">%s</span><span class="status tool-saved saved-by-custom-field">CF</span></div>', esc_html__('Saved by custom field', 'woo-save-abandoned-carts') );

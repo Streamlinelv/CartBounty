@@ -3,9 +3,9 @@ Donate link: https://www.cartbounty.com
 Contributors: streamlinestar, nauriskolats
 Tags: woocommerce, abandoned carts, cart abandonment, exit popup, activecampaign
 Requires at least: 4.6
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 7.0
-Stable tag: 8.10.2
+Stable tag: 8.11
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -44,12 +44,12 @@ CartBounty saves and displays all shopping cart activity from the moment a produ
 Save your time with automated abandoned cart recovery and focus your energy on the important stuff.
 
 * Send abandoned cart reminders using WordPress mail server
-* Send abandoned cart email series using [ActiveCampaign](https://try.activecampaign.com/start), [GetResponse](https://www.getresponse.com/?a=vPJGRchyVX&c=cartbounty_readme) and [MailChimp](http://eepurl.com/hHjfrX) (**Pro**)
+* Send abandoned cart email series using [ActiveCampaign](https://try.activecampaign.com/start), [GetResponse](https://try.getresponsetoday.com/home-page), [Brevo](https://get.brevo.com/home-page) and [MailChimp](http://eepurl.com/hHjfrX) (**Pro**)
 * Use [web push notifications](https://www.cartbounty.com/web-push-notifications-abandoned-cart-recovery/) to send low-friction, real-time, personal and efficient reminders that don't require an email or a phone number (**Pro**)
 * Use [WhatsApp](https://www.cartbounty.com/whatsapp-abandoned-cart-recovery-reminders) to send highly engaging abandoned cart reminder messages (**Pro**)
 * Send SMS text message reminders using [BulkGate](https://portal.bulkgate.com/join/55713) (**Pro**)
 * Use webhook to send abandoned cart data and create powerful automations in apps like [Make (former Integromat)](https://www.make.com/en?pc=cartbounty), [Pabbly](https://payments.pabbly.com/api/affurl/RVYZ07kQyUZ0Z1HUKZ1m/xciq3ahCAzNG3CSo?target=9Z2AHyhSldo6KI1Fn), Zapier or similar (**Pro**)
-* [Personalize messages](https://www.cartbounty.com/personalization-tags/) with dynamic content (**Pro**)
+* [Personalize messages](https://www.cartbounty.com/personalization-tags/) with dynamic content and flexible IF, ELSEIF, ELSE conditions (**Pro**)
 * Generate and send unique coupon codes (**Pro**)
 * Track message open, click-through, recovery and unsubscribe rates (**Pro**)
 * Recover unfinished orders (**Pro**)
@@ -335,8 +335,15 @@ In addition, the Pro version allows you to select if guests from specific countr
 
 == Changelog ==
 
-= 8.10.2 =
-* Minimal code refactoring regarding block checkout field restoration
-* Minor translation optimization
+= 8.11 =
+* Added automatic cursor focus when Exit Intent popup is displayed
+* Improved currency symbol and currency code formatting for saved carts when using multi-currency plugins
+* Improved duplicate abandoned cart detection to better prevent saving new abandoned carts for recently completed carts with the same contents
+* Improved compatibility with third-party SMTP and email delivery plugins when sending CartBounty emails
+* Improved compatibility with FunnelKit checkout
+* Improved compatibility with WooCommerce Block Checkout when updating customer details and shipping options
+* Improved checkout field restoration and customer session handling for registered WooCommerce customers
+* Fixed Shipping phone field saving and restoration in Classic Checkout
+* Minor abandoned cart table UX improvement
 
 [See changelog for all versions](https://raw.githubusercontent.com/Streamlinelv/woo-save-abandoned-carts/master/changelog.txt).

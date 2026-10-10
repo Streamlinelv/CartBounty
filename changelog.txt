@@ -1,5 +1,16 @@
 == Changelog ==
 
+= 8.11 =
+* Added automatic cursor focus when Exit Intent popup is displayed
+* Improved currency symbol and currency code formatting for saved carts when using multi-currency plugins
+* Improved duplicate abandoned cart detection to better prevent saving new abandoned carts for recently completed carts with the same contents
+* Improved compatibility with third-party SMTP and email delivery plugins when sending CartBounty emails
+* Improved compatibility with FunnelKit checkout
+* Improved compatibility with WooCommerce Block Checkout when updating customer details and shipping options
+* Improved checkout field restoration and customer session handling for registered WooCommerce customers
+* Fixed Shipping phone field saving and restoration in Classic Checkout
+* Minor abandoned cart table UX improvement
+
 = 8.10.2 =
 * Minimal code refactoring regarding block checkout field restoration
 * Minor translation optimization

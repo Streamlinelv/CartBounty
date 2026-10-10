@@ -282,7 +282,6 @@ class CartBounty_WordPress{
 		$reply_to = $settings['reply_email'];
 
 		$header = array(
-			'from' 			=> 'From: ' . sanitize_text_field( stripslashes( $from_name ) ) . ' <' . sanitize_email( $from_email ) . '>',
 			'content-type'	=> 'Content-Type: text/html; charset="' . esc_attr( get_option( 'blog_charset' ) ) . '"'
 		);
 
@@ -290,13 +289,22 @@ class CartBounty_WordPress{
 			$header['reply-to'] = 'Reply-To: <'. sanitize_email( $reply_to )  .'>';
 		}
 		
-		$result = wp_mail( sanitize_email($to), $admin->sanitize_field($subject), $message, $header );
+		$result = $admin->send_wp_mail(
+			sanitize_email( $to ),
+			$subject,
+			$message,
+			$header,
+			$from_email,
+			stripslashes( $from_name )
+		);
 		
-		if(!$test){ //If this is not a test email
-			$current_time = current_time( 'mysql', true );
-			$template = ( isset($step['template']) ) ? $step['template'] : $this->get_defaults( 'template', $step_nr );
-			$this->update_cart( $cart, $current_time ); //Update cart information
-			$this->add_email( $cart->id, $step_nr, $current_time ); //Create a new row in the emails table
+		if( $result ){ //In case if the email was successfully sent out
+			if(!$test){ //If this is not a test email
+				$current_time = current_time( 'mysql', true );
+				$template = ( isset($step['template']) ) ? $step['template'] : $this->get_defaults( 'template', $step_nr );
+				$this->update_cart( $cart, $current_time ); //Update cart information
+				$this->add_email( $cart->id, $step_nr, $current_time ); //Create a new row in the emails table
+			}
 		}
 
 		restore_previous_locale();
@@ -353,6 +361,7 @@ class CartBounty_WordPress{
 	* @return   HTML
 	*/
 	public function email_preview(){
+
 		if ( check_ajax_referer( 'preview_email', 'nonce', false ) == false ) { //If the request does not include our nonce security check, stop executing function
 			wp_send_json_error(esc_html__( 'Looks like you are not allowed to do this.', 'woo-save-abandoned-carts' ));
 		}
