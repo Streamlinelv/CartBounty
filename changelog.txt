@@ -1,5 +1,8 @@
 == Changelog ==
 
+= 8.11.1 =
+* Fixed a PHP fatal error caused by the Block Checkout field restoration function being triggered during WordPress shutdown
+
 = 8.11 =
 * Added automatic cursor focus when Exit Intent popup is displayed
 * Improved currency symbol and currency code formatting for saved carts when using multi-currency plugins

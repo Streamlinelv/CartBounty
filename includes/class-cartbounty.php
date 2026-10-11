@@ -170,7 +170,6 @@ class CartBounty{
 		$this->loader->add_action( 'woocommerce_cart_actions', $public, 'save_cart', 200 );
 		$this->loader->add_action( 'woocommerce_cart_item_removed', $public, 'save_cart', 200 );
 		$this->loader->add_action( 'wp', $public, 'restore_classic_checkout_fields', 10 );
-		$this->loader->add_action( 'shutdown', $public, 'restore_block_checkout_fields', 200 );
 		$this->loader->add_action( 'woocommerce_blocks_enqueue_checkout_block_scripts_before', $public, 'restore_block_checkout_fields' );
 		$this->loader->add_action( 'woocommerce_guest_session_to_user_id', $public, 'handle_customer_login', 10, 2 );
 		$this->loader->add_action( 'wp_footer', $public, 'display_exit_intent_form' );

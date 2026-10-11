@@ -5,7 +5,7 @@ Tags: woocommerce, abandoned carts, cart abandonment, exit popup, activecampaign
 Requires at least: 4.6
 Tested up to: 7.1
 Requires PHP: 7.0
-Stable tag: 8.11
+Stable tag: 8.11.1
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -335,15 +335,7 @@ In addition, the Pro version allows you to select if guests from specific countr
 
 == Changelog ==
 
-= 8.11 =
-* Added automatic cursor focus when Exit Intent popup is displayed
-* Improved currency symbol and currency code formatting for saved carts when using multi-currency plugins
-* Improved duplicate abandoned cart detection to better prevent saving new abandoned carts for recently completed carts with the same contents
-* Improved compatibility with third-party SMTP and email delivery plugins when sending CartBounty emails
-* Improved compatibility with FunnelKit checkout
-* Improved compatibility with WooCommerce Block Checkout when updating customer details and shipping options
-* Improved checkout field restoration and customer session handling for registered WooCommerce customers
-* Fixed Shipping phone field saving and restoration in Classic Checkout
-* Minor abandoned cart table UX improvement
+= 8.11.1 =
+* Fixed a PHP fatal error caused by the Block Checkout field restoration function being triggered during WordPress shutdown
 
 [See changelog for all versions](https://raw.githubusercontent.com/Streamlinelv/woo-save-abandoned-carts/master/changelog.txt).
